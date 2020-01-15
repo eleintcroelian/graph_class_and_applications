@@ -247,6 +247,7 @@ class Graph {
      */
     bool operator==(const Edge& e) const {
       (void) e;           // Quiet compiler warning
+      //HW0: YOUR CODE HERE
       return false;
     }
 
@@ -257,6 +258,7 @@ class Graph {
      */
     bool operator<(const Edge& e) const {
       (void) e;           // Quiet compiler warning
+      //HW0: YOUR CODE HERE
       return false;
     }
 
