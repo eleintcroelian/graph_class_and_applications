@@ -209,21 +209,19 @@ public:
    */
   Node add_node(const Point &position)
   {
+    // if (!has_node(new_node))       // Uncommented since instructions doesn't specify whether
+    // {                              // it is required to check if there exists a node with same position
     Node new_node = Node();
-    _Point_Vector.push_back(position);
-    // if (!has_node(new_node))
-    // {
     new_node._node_id = _n_node++;
     new_node._graph_pointer = this;
     _Node_Vector.push_back(new_node);
+    _Point_Vector.push_back(position);
     return new_node;
-    // }
-    // else
-    // {
-    //   std::vector<Point>::iterator itr = std::find(_Point_Vector.begin(), _Point_Vector.end(), position);
-    //   node_type existingnode = Node(this, std::distance(_Point_Vector.begin(), itr));
-    //   return existingnode;
-    // }
+    // }                               // Lines 220 to 224 are needed to be uncommented for [if there exists
+                                       // a node with same position already, return the existing node]
+    // std::vector<Point>::iterator itr = std::find(_Point_Vector.begin(), _Point_Vector.end(), position);
+    // node_type existingnode = Node(this, std::distance(_Point_Vector.begin(), itr));
+    // return existingnode;
   }
 
   /** Determine if a Node belongs to this Graph
@@ -324,10 +322,10 @@ public:
     // Use this space to declare private data members and methods for Edge
     // that will not be visible to users, but may be useful within Graph.
     // i.e. Graph needs a way to construct valid Edge objects
-    const Graph *_edge_graph_pointer;
-    size_type _edge_id;
-    size_type _n1_id;
-    size_type _n2_id;
+    const Graph *_edge_graph_pointer; // Pointer to the graph
+    size_type _edge_id;               // edge id
+    size_type _n1_id;                 // id of node 1
+    size_type _n2_id;                 // id of node 2
     Edge(const Graph *pointer, size_type edgeid, size_type n1id, size_type n2id)
         : _edge_graph_pointer(const_cast<Graph *>(pointer)), _edge_id(edgeid), _n1_id(n1id), _n2_id(n2id)
     {
@@ -365,7 +363,7 @@ public:
     {
       if (_n1_n2_edge.find(a._node_id) != _n1_n2_edge.end())
       {
-        if (_n1_n2_edge.at(a._node_id).find(b._node_id) != _n1_n2_edge.at(a._node_id).end()) //_____________
+        if (_n1_n2_edge.at(a._node_id).find(b._node_id) != _n1_n2_edge.at(a._node_id).end())
         {
           return true;
         }
@@ -383,6 +381,7 @@ public:
       }
       return false;
     }
+    return false;
   }
 
   /** Add an edge to the graph, or return the current edge if it already exists.
@@ -409,7 +408,7 @@ public:
         _Edge_Vector.push_back(newEdge);
         return newEdge;
       }
-      else
+      if (!(a < b))
       {
         edge_type newEdge = Edge(this, _n_edge++, b._node_id, a._node_id);
         _n1_n2_edge.insert(std::make_pair(b._node_id, std::map<size_type, size_type>()));
@@ -418,11 +417,8 @@ public:
         return newEdge;
       }
     }
-    else
-    {
-      size_type existingedgeid = _n1_n2_edge[a._node_id][b._node_id];
-      return _Edge_Vector[existingedgeid];
-    }
+    size_type existingedgeid = _n1_n2_edge[a._node_id][b._node_id]; // If edge already exists
+    return _Edge_Vector[existingedgeid];                            // return it
   }
 
   /** Remove all nodes and edges from this graph.
@@ -432,7 +428,12 @@ public:
    */
   void clear()
   {
-    // HW0: YOUR CODE HERE
+    _Point_Vector.clear();
+    _Node_Vector.clear();
+    _n1_n2_edge.clear();
+    _Edge_Vector.clear();
+    _n_node = 0;
+    _n_edge = 0;
   }
 
   //
@@ -542,9 +543,8 @@ public:
   // edge_iterator edge_end() const
 
 private:
-  // HW0: YOUR CODE HERE
   // Use this space for your Graph class's internals:
-  //   helper functions, data members, and so forth.
+  // helper functions, data members, and so forth.
 
   std::vector<Point> _Point_Vector;
   std::vector<node_type> _Node_Vector;
