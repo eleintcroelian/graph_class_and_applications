@@ -361,7 +361,7 @@ public:
    */
   bool has_edge(const Node &a, const Node &b) const
   {
-    if (a<b)
+    if (a < b)
     {
       if (_n1_n2_edge.find(a._node_id) != _n1_n2_edge.end())
       {
@@ -370,12 +370,9 @@ public:
           return true;
         }
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
-    if(b<a)
+    if (b < a)
     {
       if (_n1_n2_edge.find(b._node_id) != _n1_n2_edge.end())
       {
@@ -384,12 +381,8 @@ public:
           return true;
         }
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
-    
   }
 
   /** Add an edge to the graph, or return the current edge if it already exists.
