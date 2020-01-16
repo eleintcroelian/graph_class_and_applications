@@ -171,12 +171,12 @@ public:
     // that will not be visible to users, but may be useful within Graph.
     // i.e. Graph needs a way to construct valid Node objects
 
-    Node(const Graph* pointer, size_type id)
-        : _graph_pointer(const_cast<Graph*>(pointer)), _node_id(id) {
+    Node(const Graph *pointer, size_type id)
+        : _graph_pointer(const_cast<Graph *>(pointer)), _node_id(id)
+    {
     }
-    const Graph* _graph_pointer;
+    const Graph *_graph_pointer;
     size_type _node_id;
-
   };
 
   /** Return the number of nodes in the graph.
@@ -264,7 +264,6 @@ public:
     /** Construct an invalid Edge. */
     Edge()
     {
-      // HW0: YOUR CODE HERE
     }
 
     /** Return a node of this Edge */
@@ -309,6 +308,15 @@ public:
     // Use this space to declare private data members and methods for Edge
     // that will not be visible to users, but may be useful within Graph.
     // i.e. Graph needs a way to construct valid Edge objects
+    const Graph *_edge_graph_pointer;
+    size_type _edge_id;
+    size_type _node1;
+    size_type _node2;
+    Edge(const Graph *pointer, size_type id, size_type node1, size_type node2)
+        : _edge_graph_pointer(const_cast<Graph *>(pointer)), _edge_id(id),
+          _node1(node1), _node2(node2)
+    {
+    }
   };
 
   /** Return the total number of edges in the graph.
