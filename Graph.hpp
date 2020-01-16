@@ -12,24 +12,22 @@
 #include "CME212/Util.hpp"
 #include "CME212/Point.hpp"
 
-
 /** @class Graph
  * @brief A template for 3D undirected graphs.
  *
  * Users can add and retrieve nodes and edges. Edges are unique (there is at
  * most one edge between any pair of distinct nodes).
  */
-class Graph {
- private:
-
+class Graph
+{
+private:
   // HW0: YOUR CODE HERE
   // Use this space for declarations of important internal types you need
   // later in the Graph's definition.
   // (As with all the "YOUR CODE HERE" markings, you may not actually NEED
   // code here. Just use the space if you need it.)
 
- public:
-
+public:
   //
   // PUBLIC TYPE DEFINITIONS
   //
@@ -72,8 +70,8 @@ class Graph {
   //
 
   /** Construct an empty graph. */
-  Graph() {
-    // HW0: YOUR CODE HERE
+  Graph()
+  {
   }
 
   /** Default destructor */
@@ -88,8 +86,9 @@ class Graph {
    *
    * Node objects are used to access information about the Graph's nodes.
    */
-  class Node {
-   public:
+  class Node
+  {
+  public:
     /** Construct an invalid node.
      *
      * Valid nodes are obtained from the Graph class, but it
@@ -105,20 +104,19 @@ class Graph {
      * do_something(x);
      * @endcode
      */
-    Node() {
-      // HW0: YOUR CODE HERE
+    Node()
+    {
     }
 
     /** Return this node's position. */
-    const Point& position() const {
-      // HW0: YOUR CODE HERE
-      return Point();
+    const Point &position() const
+    {
+      return _graph_pointer->_Point_Vector[_node_id];
     }
-
     /** Return this node's index, a number in the range [0, graph_size). */
-    size_type index() const {
-      // HW0: YOUR CODE HERE
-      return size_type(-1);
+    size_type index() const
+    {
+      return _node_id;
     }
 
     // HW1: YOUR CODE HERE
@@ -133,10 +131,16 @@ class Graph {
      *
      * Equal nodes have the same graph and the same index.
      */
-    bool operator==(const Node& n) const {
-      // HW0: YOUR CODE HERE
-      (void) n;          // Quiet compiler warning
-      return false;
+    bool operator==(const Node &n) const
+    {
+      if ((_node_id == n._node_id) && (_graph_pointer == n._graph_pointer))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
 
     /** Test whether this node is less than @a n in a global order.
@@ -147,32 +151,46 @@ class Graph {
      * The node ordering relation must obey trichotomy: For any two nodes x
      * and y, exactly one of x == y, x < y, and y < x is true.
      */
-    bool operator<(const Node& n) const {
-      // HW0: YOUR CODE HERE
-      (void) n;           // Quiet compiler warning
-      return false;
+    bool operator<(const Node &n) const
+    {
+      if ((_node_id < n._node_id))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
 
-   private:
+  private:
     // Allow Graph to access Node's private member data and functions.
     friend class Graph;
     // HW0: YOUR CODE HERE
     // Use this space to declare private data members and methods for Node
     // that will not be visible to users, but may be useful within Graph.
     // i.e. Graph needs a way to construct valid Node objects
+
+    Node(const Graph* pointer, size_type id)
+        : _graph_pointer(const_cast<Graph*>(pointer)), _node_id(id) {
+    }
+    const Graph* _graph_pointer;
+    size_type _node_id;
+
   };
 
   /** Return the number of nodes in the graph.
    *
    * Complexity: O(1).
    */
-  size_type size() const {
-    // HW0: YOUR CODE HERE
-    return 0;
+  size_type size() const
+  {
+    return _n_node;
   }
 
   /** Synonym for size(). */
-  size_type num_nodes() const {
+  size_type num_nodes() const
+  {
     return size();
   }
 
@@ -183,10 +201,18 @@ class Graph {
    *
    * Complexity: O(1) amortized operations.
    */
-  Node add_node(const Point& position) {
+  Node add_node(const Point &position)
+  {
     // HW0: YOUR CODE HERE
-    (void) position;      // Quiet compiler warning
-    return Node();        // Invalid node
+
+    _Point_Vector.push_back(position);
+    Node new_node = Node();
+    if (!has_node(new_node))
+    {
+      new_node._node_id = ++_n_node;
+      new_node._graph_pointer = this;
+    }
+    return new_node; // Invalid node
   }
 
   /** Determine if a Node belongs to this Graph
@@ -194,10 +220,16 @@ class Graph {
    *
    * Complexity: O(1).
    */
-  bool has_node(const Node& n) const {
-    // HW0: YOUR CODE HERE
-    (void) n;            // Quiet compiler warning
-    return false;
+  bool has_node(const Node &n) const
+  {
+    if (n._node_id < this->_n_node)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
   }
 
   /** Return the node with index @a i.
@@ -206,10 +238,14 @@ class Graph {
    *
    * Complexity: O(1).
    */
-  Node node(size_type i) const {
+  Node node(size_type i) const
+  {
     // HW0: YOUR CODE HERE
-    (void) i;             // Quiet compiler warning
-    return Node();        // Invalid node
+    // Quiet compiler warning
+    Node n = Node();
+    n._graph_pointer = this;
+    n._node_id = i;
+    return n; // Invalid node
   }
 
   //
@@ -222,31 +258,36 @@ class Graph {
    * Edges are order-insensitive pairs of nodes. Two Edges with the same nodes
    * are considered equal if they connect the same nodes, in either order.
    */
-  class Edge {
-   public:
+  class Edge
+  {
+  public:
     /** Construct an invalid Edge. */
-    Edge() {
+    Edge()
+    {
       // HW0: YOUR CODE HERE
     }
 
     /** Return a node of this Edge */
-    Node node1() const {
+    Node node1() const
+    {
       // HW0: YOUR CODE HERE
-      return Node();      // Invalid Node
+      return Node(); // Invalid Node
     }
 
     /** Return the other node of this Edge */
-    Node node2() const {
+    Node node2() const
+    {
       // HW0: YOUR CODE HERE
-      return Node();      // Invalid Node
+      return Node(); // Invalid Node
     }
 
     /** Test whether this edge and @a e are equal.
      *
      * Equal edges represent the same undirected edge between two nodes.
      */
-    bool operator==(const Edge& e) const {
-      (void) e;           // Quiet compiler warning
+    bool operator==(const Edge &e) const
+    {
+      (void)e; // Quiet compiler warning
       return false;
     }
 
@@ -255,12 +296,13 @@ class Graph {
      * This ordering function is useful for STL containers such as
      * std::map<>. It need not have any interpretive meaning.
      */
-    bool operator<(const Edge& e) const {
-      (void) e;           // Quiet compiler warning
+    bool operator<(const Edge &e) const
+    {
+      (void)e; // Quiet compiler warning
       return false;
     }
 
-   private:
+  private:
     // Allow Graph to access Edge's private member data and functions.
     friend class Graph;
     // HW0: YOUR CODE HERE
@@ -273,7 +315,8 @@ class Graph {
    *
    * Complexity: No more than O(num_nodes() + num_edges()), hopefully less
    */
-  size_type num_edges() const {
+  size_type num_edges() const
+  {
     // HW0: YOUR CODE HERE
     return 0;
   }
@@ -283,10 +326,11 @@ class Graph {
    *
    * Complexity: No more than O(num_nodes() + num_edges()), hopefully less
    */
-  Edge edge(size_type i) const {
+  Edge edge(size_type i) const
+  {
     // HW0: YOUR CODE HERE
-    (void) i;             // Quiet compiler warning
-    return Edge();        // Invalid Edge
+    (void)i;       // Quiet compiler warning
+    return Edge(); // Invalid Edge
   }
 
   /** Test whether two nodes are connected by an edge.
@@ -295,9 +339,11 @@ class Graph {
    *
    * Complexity: No more than O(num_nodes() + num_edges()), hopefully less
    */
-  bool has_edge(const Node& a, const Node& b) const {
+  bool has_edge(const Node &a, const Node &b) const
+  {
     // HW0: YOUR CODE HERE
-    (void) a; (void) b;   // Quiet compiler warning
+    (void)a;
+    (void)b; // Quiet compiler warning
     return false;
   }
 
@@ -313,10 +359,11 @@ class Graph {
    *
    * Complexity: No more than O(num_nodes() + num_edges()), hopefully less
    */
-  Edge add_edge(const Node& a, const Node& b) {
+  Edge add_edge(const Node &a, const Node &b)
+  {
     // HW0: YOUR CODE HERE
-    (void) a, (void) b;   // Quiet compiler warning
-    return Edge();        // Invalid Edge
+    (void)a, (void)b; // Quiet compiler warning
+    return Edge();    // Invalid Edge
   }
 
   /** Remove all nodes and edges from this graph.
@@ -324,7 +371,8 @@ class Graph {
    *
    * Invalidates all outstanding Node and Edge objects.
    */
-  void clear() {
+  void clear()
+  {
     // HW0: YOUR CODE HERE
   }
 
@@ -334,17 +382,19 @@ class Graph {
 
   /** @class Graph::NodeIterator
    * @brief Iterator class for nodes. A forward iterator. */
-  class NodeIterator {
-   public:
+  class NodeIterator
+  {
+  public:
     // These type definitions let us use STL's iterator_traits.
-    using value_type        = Node;                     // Element type
-    using pointer           = Node*;                    // Pointers to elements
-    using reference         = Node&;                    // Reference to elements
-    using difference_type   = std::ptrdiff_t;           // Signed difference
-    using iterator_category = std::input_iterator_tag;  // Weak Category, Proxy
+    using value_type = Node;                           // Element type
+    using pointer = Node *;                            // Pointers to elements
+    using reference = Node &;                          // Reference to elements
+    using difference_type = std::ptrdiff_t;            // Signed difference
+    using iterator_category = std::input_iterator_tag; // Weak Category, Proxy
 
     /** Construct an invalid NodeIterator. */
-    NodeIterator() {
+    NodeIterator()
+    {
     }
 
     // HW1 #2: YOUR CODE HERE
@@ -353,7 +403,7 @@ class Graph {
     // NodeIterator& operator++()
     // bool operator==(const NodeIterator&) const
 
-   private:
+  private:
     friend class Graph;
     // HW1 #2: YOUR CODE HERE
   };
@@ -369,17 +419,19 @@ class Graph {
 
   /** @class Graph::IncidentIterator
    * @brief Iterator class for edges incident to a node. A forward iterator. */
-  class IncidentIterator {
-   public:
+  class IncidentIterator
+  {
+  public:
     // These type definitions let us use STL's iterator_traits.
-    using value_type        = Edge;                     // Element type
-    using pointer           = Edge*;                    // Pointers to elements
-    using reference         = Edge&;                    // Reference to elements
-    using difference_type   = std::ptrdiff_t;           // Signed difference
-    using iterator_category = std::input_iterator_tag;  // Weak Category, Proxy
+    using value_type = Edge;                           // Element type
+    using pointer = Edge *;                            // Pointers to elements
+    using reference = Edge &;                          // Reference to elements
+    using difference_type = std::ptrdiff_t;            // Signed difference
+    using iterator_category = std::input_iterator_tag; // Weak Category, Proxy
 
     /** Construct an invalid IncidentIterator. */
-    IncidentIterator() {
+    IncidentIterator()
+    {
     }
 
     // HW1 #3: YOUR CODE HERE
@@ -388,7 +440,7 @@ class Graph {
     // IncidentIterator& operator++()
     // bool operator==(const IncidentIterator&) const
 
-   private:
+  private:
     friend class Graph;
     // HW1 #3: YOUR CODE HERE
   };
@@ -399,17 +451,19 @@ class Graph {
 
   /** @class Graph::EdgeIterator
    * @brief Iterator class for edges. A forward iterator. */
-  class EdgeIterator {
-   public:
+  class EdgeIterator
+  {
+  public:
     // These type definitions let us use STL's iterator_traits.
-    using value_type        = Edge;                     // Element type
-    using pointer           = Edge*;                    // Pointers to elements
-    using reference         = Edge&;                    // Reference to elements
-    using difference_type   = std::ptrdiff_t;           // Signed difference
-    using iterator_category = std::input_iterator_tag;  // Weak Category, Proxy
+    using value_type = Edge;                           // Element type
+    using pointer = Edge *;                            // Pointers to elements
+    using reference = Edge &;                          // Reference to elements
+    using difference_type = std::ptrdiff_t;            // Signed difference
+    using iterator_category = std::input_iterator_tag; // Weak Category, Proxy
 
     /** Construct an invalid EdgeIterator. */
-    EdgeIterator() {
+    EdgeIterator()
+    {
     }
 
     // HW1 #5: YOUR CODE HERE
@@ -418,7 +472,7 @@ class Graph {
     // EdgeIterator& operator++()
     // bool operator==(const EdgeIterator&) const
 
-   private:
+  private:
     friend class Graph;
     // HW1 #5: YOUR CODE HERE
   };
@@ -428,12 +482,13 @@ class Graph {
   // edge_iterator edge_begin() const
   // edge_iterator edge_end() const
 
- private:
-
+private:
   // HW0: YOUR CODE HERE
   // Use this space for your Graph class's internals:
   //   helper functions, data members, and so forth.
 
+  std::vector<Point> _Point_Vector;
+  size_type _n_node = 0;
 };
 
 #endif // CME212_GRAPH_HPP
