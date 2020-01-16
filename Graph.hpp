@@ -72,6 +72,12 @@ public:
   /** Construct an empty graph. */
   Graph()
   {
+    std::vector<Point> _Point_Vector;
+    std::vector<node_type> _Node_Vector;
+    std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge;
+    std::vector<edge_type> _Edge_Vector;
+    _n_node = 0;
+    _n_edge = 0;
   }
 
   /** Default destructor */
@@ -203,16 +209,21 @@ public:
    */
   Node add_node(const Point &position)
   {
-    // HW0: YOUR CODE HERE
-
-    _Point_Vector.push_back(position);
     Node new_node = Node();
-    if (!has_node(new_node))
-    {
-      new_node._node_id = ++_n_node;
-      new_node._graph_pointer = this;
-    }
-    return new_node; // Invalid node
+    _Point_Vector.push_back(position);
+    // if (!has_node(new_node))
+    // {
+    new_node._node_id = _n_node++;
+    new_node._graph_pointer = this;
+    _Node_Vector.push_back(new_node);
+    return new_node;
+    // }
+    // else
+    // {
+    //   std::vector<Point>::iterator itr = std::find(_Point_Vector.begin(), _Point_Vector.end(), position);
+    //   node_type existingnode = Node(this, std::distance(_Point_Vector.begin(), itr));
+    //   return existingnode;
+    // }
   }
 
   /** Determine if a Node belongs to this Graph
@@ -222,7 +233,7 @@ public:
    */
   bool has_node(const Node &n) const
   {
-    if (n._node_id < this->_n_node)
+    if ((n._node_id < this->_n_node) && (n._graph_pointer == this))
     {
       return true;
     }
@@ -240,12 +251,7 @@ public:
    */
   Node node(size_type i) const
   {
-    // HW0: YOUR CODE HERE
-    // Quiet compiler warning
-    Node n = Node();
-    n._graph_pointer = this;
-    n._node_id = i;
-    return n; // Invalid node
+    return _Node_Vector[i];
   }
 
   //
@@ -269,15 +275,13 @@ public:
     /** Return a node of this Edge */
     Node node1() const
     {
-      // HW0: YOUR CODE HERE
-      return Node(); // Invalid Node
+      return _edge_graph_pointer->_Node_Vector[_n1_id];
     }
 
     /** Return the other node of this Edge */
     Node node2() const
     {
-      // HW0: YOUR CODE HERE
-      return Node(); // Invalid Node
+      return _edge_graph_pointer->_Node_Vector[_n2_id];
     }
 
     /** Test whether this edge and @a e are equal.
@@ -286,8 +290,14 @@ public:
      */
     bool operator==(const Edge &e) const
     {
-      (void)e; // Quiet compiler warning
-      return false;
+      if ((_n1_id == e._n1_id) && (_n2_id == e._n2_id))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
 
     /** Test whether this edge is less than @a e in a global order.
@@ -297,8 +307,14 @@ public:
      */
     bool operator<(const Edge &e) const
     {
-      (void)e; // Quiet compiler warning
-      return false;
+      if (_edge_id < e._edge_id)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
 
   private:
@@ -310,11 +326,10 @@ public:
     // i.e. Graph needs a way to construct valid Edge objects
     const Graph *_edge_graph_pointer;
     size_type _edge_id;
-    size_type _node1;
-    size_type _node2;
-    Edge(const Graph *pointer, size_type id, size_type node1, size_type node2)
-        : _edge_graph_pointer(const_cast<Graph *>(pointer)), _edge_id(id),
-          _node1(node1), _node2(node2)
+    size_type _n1_id;
+    size_type _n2_id;
+    Edge(const Graph *pointer, size_type edgeid, size_type n1id, size_type n2id)
+        : _edge_graph_pointer(const_cast<Graph *>(pointer)), _edge_id(edgeid), _n1_id(n1id), _n2_id(n2id)
     {
     }
   };
@@ -325,8 +340,7 @@ public:
    */
   size_type num_edges() const
   {
-    // HW0: YOUR CODE HERE
-    return 0;
+    return _n_edge;
   }
 
   /** Return the edge with index @a i.
@@ -336,9 +350,7 @@ public:
    */
   Edge edge(size_type i) const
   {
-    // HW0: YOUR CODE HERE
-    (void)i;       // Quiet compiler warning
-    return Edge(); // Invalid Edge
+    return _Edge_Vector[i];
   }
 
   /** Test whether two nodes are connected by an edge.
@@ -349,10 +361,35 @@ public:
    */
   bool has_edge(const Node &a, const Node &b) const
   {
-    // HW0: YOUR CODE HERE
-    (void)a;
-    (void)b; // Quiet compiler warning
-    return false;
+    if (a<b)
+    {
+      if (_n1_n2_edge.find(a._node_id) != _n1_n2_edge.end())
+      {
+        if (_n1_n2_edge.at(a._node_id).find(b._node_id) != _n1_n2_edge.at(a._node_id).end()) //_____________
+        {
+          return true;
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
+    if(b<a)
+    {
+      if (_n1_n2_edge.find(b._node_id) != _n1_n2_edge.end())
+      {
+        if (_n1_n2_edge.at(b._node_id).find(a._node_id) != _n1_n2_edge.at(b._node_id).end()) //_____________
+        {
+          return true;
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
+    
   }
 
   /** Add an edge to the graph, or return the current edge if it already exists.
@@ -369,9 +406,30 @@ public:
    */
   Edge add_edge(const Node &a, const Node &b)
   {
-    // HW0: YOUR CODE HERE
-    (void)a, (void)b; // Quiet compiler warning
-    return Edge();    // Invalid Edge
+    if (!has_edge(a, b))
+    {
+      if (a < b)
+      {
+        edge_type newEdge = Edge(this, _n_edge++, a._node_id, b._node_id);
+        _n1_n2_edge.insert(std::make_pair(a._node_id, std::map<size_type, size_type>()));
+        _n1_n2_edge[a._node_id].insert(std::make_pair(b._node_id, newEdge._edge_id));
+        _Edge_Vector.push_back(newEdge);
+        return newEdge;
+      }
+      else
+      {
+        edge_type newEdge = Edge(this, _n_edge++, b._node_id, a._node_id);
+        _n1_n2_edge.insert(std::make_pair(b._node_id, std::map<size_type, size_type>()));
+        _n1_n2_edge[b._node_id].insert(std::make_pair(a._node_id, newEdge._edge_id));
+        _Edge_Vector.push_back(newEdge);
+        return newEdge;
+      }
+    }
+    else
+    {
+      size_type existingedgeid = _n1_n2_edge[a._node_id][b._node_id];
+      return _Edge_Vector[existingedgeid];
+    }
   }
 
   /** Remove all nodes and edges from this graph.
@@ -496,7 +554,11 @@ private:
   //   helper functions, data members, and so forth.
 
   std::vector<Point> _Point_Vector;
+  std::vector<node_type> _Node_Vector;
+  std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge;
+  std::vector<edge_type> _Edge_Vector;
   size_type _n_node = 0;
+  size_type _n_edge = 0;
 };
 
 #endif // CME212_GRAPH_HPP
