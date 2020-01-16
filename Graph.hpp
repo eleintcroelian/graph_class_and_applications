@@ -217,8 +217,9 @@ public:
     _Node_Vector.push_back(new_node);
     _Point_Vector.push_back(position);
     return new_node;
-    // }                               // Lines 220 to 224 are needed to be uncommented for [if there exists
+    // }                               // Lines 220 to 225 are needed to be uncommented for [if there exists
                                        // a node with same position already, return the existing node]
+                                       //
     // std::vector<Point>::iterator itr = std::find(_Point_Vector.begin(), _Point_Vector.end(), position);
     // node_type existingnode = Node(this, std::distance(_Point_Vector.begin(), itr));
     // return existingnode;
@@ -546,12 +547,13 @@ private:
   // Use this space for your Graph class's internals:
   // helper functions, data members, and so forth.
 
-  std::vector<Point> _Point_Vector;
-  std::vector<node_type> _Node_Vector;
-  std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge;
-  std::vector<edge_type> _Edge_Vector;
-  size_type _n_node = 0;
-  size_type _n_edge = 0;
+  std::vector<Point> _Point_Vector; // Vector holding points of nodes (ordered)
+  std::vector<node_type> _Node_Vector; // Vector holding Nodes (ordered)
+  std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge; 
+                                      // Nested map with node1_id - [node2_id - edge_id] structure
+  std::vector<edge_type> _Edge_Vector; // Vector holding Edge objects (ordered)
+  size_type _n_node = 0; // Total number of nodes
+  size_type _n_edge = 0; // Total number of edges
 };
 
 #endif // CME212_GRAPH_HPP
