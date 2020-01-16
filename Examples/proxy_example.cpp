@@ -63,6 +63,7 @@ class SimpleSet
     SimpleSet* set_;
     // This element's unique identification number
     size_type uid_;
+    
     /** Private Constructor */
     SimpleElement(const SimpleSet* set, size_type uid)
         : set_(const_cast<SimpleSet*>(set)), uid_(uid) {
