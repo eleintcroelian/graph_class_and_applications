@@ -1,0 +1,299 @@
+\documentclass[12pt,letterpaper,twoside]{article}
+
+ \newif\ifsolution\solutiontrue   % Include the solutions
+% \newif\ifsolution\solutionfalse  % Exclude the solutions
+
+\usepackage{cme212}
+
+\begin{document}
+
+{\centering \textbf{Paper Exercise 1 \\ Due
+    Tuesday, January 28th at 4:30 P.M. (on Gradescope)} \par}
+\vspace*{-8pt}\noindent\rule{\linewidth}{1pt}
+\vspace{-3em}
+
+
+\paragraph{Question 0: Lecture 3}
+Are the preconditions for the following functions correct? If not, where does it go wrong, and how would you rewrite them?
+
+\textbf{(a)}
+\begin{cpp}
+/* Normalize a vector in place
+ *@param[in] _v_ stl vector of doubles to normalize
+ *
+ *@post the sum of all the elements of _v_ is 1
+*/
+void normalize(std::vector<double>& v){
+	double sum = 0.0;
+	for(auto it = v.begin(); it != v.end(); it++){
+		sum += *it;
+	}
+	for(auto it = v.begin(); it != v.end(); it++){
+		*it/=sum;
+	}
+	
+}	
+\end{cpp}
+
+\begin{solution}
+
+\end{solution}
+
+\textbf{(b)}
+\begin{cpp}
+	/* Compute the cosine similarity between two vectors
+	* @param[in] _v_ stl vector of doubles
+	* @param[in] _w_ stl vector of doubles
+	* @return the cosine of the angle between _v_ and _w_ 
+	*
+	* @pre _v_.size() == _w_.size()
+	* @pre for all 0<i<_v_.size() _v_[i]!=0 and _w_[i]!=0
+	*/
+	
+	double cosine_sim(const std::vector<double>& v, const std::vector<double>& w){
+		double num = 0.0;
+		double norm_v = 0.0;
+		double norm_w = 0.0;
+		
+		if(v.size() != w.size){
+			std::cout<<"vectors are not the same length"<<std::endl;
+			return 2.0;
+		}
+		for(unsigned int i=0; i<v.size(); i++){
+			num += v[i]*w[i];
+			norm_w += w[i] * w[i];
+			norm_v += v[i] * v[i];
+		}
+		
+		return num/(sqrt(norm_w)*sqrt(norm_v));
+	}
+\end{cpp}
+
+\begin{solution}
+
+\end{solution}
+
+\paragraph{Question 1: Lecture 2}
+\quad \vspace{-20pt}\\
+\begin{cpp}
+/** Find the first element in a sorted array that does not 
+ *  satisfy a predicate.
+ * @param[in] _a_         Array to search.
+ * @param[in] _low_,_high_  Search in the index range [_low_, _high_).
+ * @param[in] _pred_      Predicate to consider
+ * @return  An index into array _a_, or _high_.
+ *
+ * @tparam T     Type of the elements. 
+ * @tparam Pred Type of the predicate with signature:
+ *                bool operator()(const T&)
+ *
+ * @pre  0 <= _low_ <= _high_ <= Size of _a_.
+ * @pre  There exists k in [_low_, _high_] such that
+ *   for all i with _low_ <= i < k, _pred_(_a_[i]), and
+ *   for all j with k <= j < _high_, !_pred_(_a_[j]).
+ *
+ * @post For all i,j with _low_ <= i < result <= j < _high_, 
+ *           _pred_(_a_[i]) and !_pred_(_a_[j]).
+ *
+ * Performs O(log(_high_ - _low_)) operations.
+ */
+template <typename T, typename Pred>
+int lower_bound(const T* a, int low, int high, const Pred& pred);
+\end{cpp}
+
+Using the \texttt{lower\_bound} function with the above specification, implement a \texttt{lower\_bound} function with the following specification; \textbf{(a)} first, with a functor, and \textbf{(b)} second, with a lambda function.
+\begin{cpp}
+/** Find the first element in a sorted array that is not less than a value.
+ * @param[in] a         Sorted array to search.
+ * @param[in] low,high  Search in the index range [_low_, _high_).
+ * @param[in] v         Value to search for.
+ * @return  An index into array _a_, or _high_.
+ *
+ * @tparam T Type of the elements. 
+ *   T is comparable with 'bool operator<(T,T)'.
+ *   Operator< is irreflexive, i.e. operator<(x, x) returns false
+ *
+ * @pre  0 <= _low_ <= _high_ <= Size of _a_.
+ * @pre  For all i,j with _low_ <= i < j < _high_, 
+ *          !(_a_[j] < _a_[i])
+ *
+ * @post For all i,j with _low_ <= i < result <= j < _high_, 
+ *          _a_[i] < _v_ and !(_a_[j] < _v_).
+ *
+ * Performs O(log(_high_ - _low_)) operations.
+ */
+template <typename T>
+int lower_bound(const T* a, int low, int high, const T& v);
+\end{cpp}
+\begin{solution}
+
+\end{solution}
+
+
+
+\paragraph{Question 2: Lecture 4}
+\quad \\
+\textbf{(a)} What are the 4 operators and the 2 functions an iterator needs to implement?
+
+\begin{solution}
+
+\end{solution}
+
+\textbf{(b)} As long as an iterator class has the above methods defined, it can be used with any of the \texttt{stl} methods that use iterators. We will write an iterator class for a book that is represented as a \texttt{std::vector<std::vector<string>>}. In this case, each inner \texttt{std::vector<string>} represents a sentence of the book, split into individual words. Write a wrapper iterator that iterates over all the words in a \texttt{Book}. The starter code is given below as well as in \href{https://github.com/cme212/CME212-2020/blob/master/EX1/q2_starter.cpp}{\texttt{q2\_starter.cpp}}
+
+\begin{cpp}
+#include <string>
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <algorithm>
+
+
+//alias pointer for convenience
+using book_ptr = std::vector<std::vector<string>>*
+
+//Helper function to split string into a vector based on a splitting character.
+//This function is used to load the book.
+const std::vector<std::string> split(const std::string& s, const char& c)
+{
+	std::string buff{""};
+	std::vector<std::string> v;
+	
+	//iterate character by character and push the buffer to the vector if the splitting char is reached.
+	for(auto n:s)
+	{
+		if(n != c) buff+=n; else
+		if(n == c && buff != "") { v.push_back(buff); buff = ""; }
+	}
+	if(buff != "") v.push_back(buff);
+	
+	return v;
+}
+
+//This class represents a book as a vector of vector of strings,
+//where each vector of strings is sentence in the book.
+class Book:
+{
+	std::vector<std::string> temp_book_;
+	std::vector<std::vector<std::string>> book_;
+	
+	public:
+	//Constructor for the book class.
+	//Takes in a .txt file and splits it into a
+	//std::vector<std::vector<string>>
+	Book(std::string filename) 
+	{
+		//Read in the book as a vector of strings
+		//where each string is a sentence.
+		std::string sent;
+		std::ifstream book_file(filename);
+		std::vector<std::string> temp;
+		
+		//Read the file line by line.
+		while(std::getline(book_file, sent))
+		{
+			temp_book_.push_back(sent);
+		}
+		book_file.close();
+		
+		//Split each sentence by ' '
+		for (unsigned int i = 0; i< temp_book_.size(); i++)
+		{
+			//Skip empty lines
+			if (temp_book_[i].length()==0){
+				continue;
+			}
+			else{
+				temp = split(temp_book_[i], ' ');
+				book_.push_back(temp);
+			}
+			
+		}
+		
+	}
+	
+	
+	//return an iterator pointing at the start of the book
+	BookIter begin()
+	{
+		//Your code here
+	} 
+	
+	//return an iterator pointing at the end of the book
+	BookIter end()
+	{
+		//Your code here	
+	}
+	
+	private:
+	std::vector<std::vector<string>> book_;
+	
+}
+
+class BookIter:
+{
+	public:
+	
+	
+	//Increments to the next word in the book class.
+	BookIter operator++()
+	{
+		//Your code here
+	}
+	
+	//Defines equality between two iterators
+	bool operator==(BookIter book_iter)
+	{
+		//Your code here		
+	}
+	
+	//Defines inequality between two iterators
+	bool operator!=(BookIter book_iter)
+	{
+		//Your code here		
+	}
+	
+	//Dereference operator
+	std::string operator*()
+	{
+		//Your code here			
+	}
+	
+	
+	private:
+	friend class Book;
+	//Your code here
+	
+	//Private constructor that can be accessed by the Book class.
+	BookIter(){
+		//Your code here
+	}
+}
+
+\end{cpp}
+
+\begin{solution}
+
+\end{solution}
+ 
+\textbf{(c)} Write a functor that implements a comparator between two strings based on the length of the strings, returning \texttt{true} if and only if the second string is at least as long as the first string.
+
+\begin{solution}
+
+\end{solution}
+
+\textbf{(d)} The code below reads in Moby Dick into the book class. Use the iterator class, the functor and an stl algorithm from the algorithms package to find the longest word in Moby Dick.
+
+\begin{cpp}
+int main()
+{
+	Book moby_dick("moby_dick.txt");
+	\\ Your code here.
+	std::cout<< longest_word << std::endl;
+}
+\end{cpp}
+
+\begin{solution}
+
+\end{solution}
+\end{document}
