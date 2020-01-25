@@ -418,8 +418,12 @@ public:
         return newEdge;
       }
     }
+//--functionality_1
+//--in add_edge you do not return an edge that always has node1 == a (see @return above). I suspect that it is becasue if b>a then you store_n1_n2_edge[b._node_id] and not the other way round. thus the line below fails
+//--START
     size_type existingedgeid = _n1_n2_edge[a._node_id][b._node_id]; // If edge already exists
     return _Edge_Vector[existingedgeid];                            // return it
+//--END
   }
 
   /** Remove all nodes and edges from this graph.
@@ -547,6 +551,9 @@ private:
   // Use this space for your Graph class's internals:
   // helper functions, data members, and so forth.
 
+//--design_0
+//--well done with nested maps, very close to getting the implimentation correct. Howeever nedge and nnode are unneccecary, making calls to a vector size() are low computational cost. 
+//--START
   std::vector<Point> _Point_Vector; // Vector holding points of nodes (ordered)
   std::vector<node_type> _Node_Vector; // Vector holding Nodes (ordered)
   std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge; 
@@ -554,6 +561,7 @@ private:
   std::vector<edge_type> _Edge_Vector; // Vector holding Edge objects (ordered)
   size_type _n_node = 0; // Total number of nodes
   size_type _n_edge = 0; // Total number of edges
+//--END
 };
 
 #endif // CME212_GRAPH_HPP

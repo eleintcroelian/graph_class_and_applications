@@ -1,0 +1,18 @@
+=== 6275758
+(   ) Autograder created this report at: Mon Jan 20 19:56:15 2020
+(   ) You initially have 100 points; autograder will deduct points below; total at bottom.
+(   ) Expecting at least one of these files to exist: ['*.c', '*.C', '*.cpp']
+(   ) Expecting at least one of these files to exist: ['makefile', 'Makefile']
+(   ) Deleted: viewer (67KiB)
+(   ) Process manager: Thread started: ['make', 'viewer']
+(   ) Process manager: Limits are time=30sec memory=8GiB fsize=50GiB 
+(   ) Process manager: Process exited after 0.01sec with return code 2
+(   ) Program output: No stdout output.
+(   ) Program output: stderr:
+make: *** No rule to make target '/Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/fstream', needed by 'viewer.o'.  Stop.
+( -5) Exit status: Expecting exit code 0 but found 2
+(   ) Expecting at least one of these files to exist: ['viewer']
+( -5) Did not find one of the expected files.
+(-50) Can't find expected executables. Giving up.
+TOTAL: 40
+IMPORTANT: If this report is sent prior to the assignment deadline, remember that the autograder tests and scoring may change significantly. If this report is sent after the assignment deadline, remember that the instructor or TA will use this report to assist with grading---and your actual grade may differ from what this report says. If you have any information that the instructor or TA should know about when grading your submission, please leave a comment on your submission in Canvas.
