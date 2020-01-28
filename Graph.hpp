@@ -18,6 +18,7 @@
  * Users can add and retrieve nodes and edges. Edges are unique (there is at
  * most one edge between any pair of distinct nodes).
  */
+template <typename V>
 class Graph
 {
 private:
@@ -33,6 +34,7 @@ public:
   //
 
   /** Type of this graph. */
+  using node_value_type = V;
   using graph_type = Graph;
 
   /** Predeclaration of Node type. */
@@ -76,8 +78,6 @@ public:
     std::vector<node_type> _Node_Vector;
     std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge;
     std::vector<edge_type> _Edge_Vector;
-    _n_node = 0;
-    _n_edge = 0;
   }
 
   /** Default destructor */
@@ -92,7 +92,7 @@ public:
    *
    * Node objects are used to access information about the Graph's nodes.
    */
-  class Node
+  class Node : private totally_ordered<Node>
   {
   public:
     /** Construct an invalid node.
@@ -191,7 +191,7 @@ public:
    */
   size_type size() const
   {
-    return _n_node;
+    return _Node_Vector.size();
   }
 
   /** Synonym for size(). */
@@ -212,7 +212,7 @@ public:
     // if (!has_node(new_node))       // Uncommented since instructions doesn't specify whether
     // {                              // it is required to check if there exists a node with same position
     Node new_node = Node();
-    new_node._node_id = _n_node++;
+    new_node._node_id = _Node_Vector.size();
     new_node._graph_pointer = this;
     _Node_Vector.push_back(new_node);
     _Point_Vector.push_back(position);
@@ -232,7 +232,7 @@ public:
    */
   bool has_node(const Node &n) const
   {
-    if ((n._node_id < this->_n_node) && (n._graph_pointer == this))
+    if ((n._node_id < this->_Node_Vector.size()) && (n._graph_pointer == this))
     {
       return true;
     }
@@ -263,7 +263,7 @@ public:
    * Edges are order-insensitive pairs of nodes. Two Edges with the same nodes
    * are considered equal if they connect the same nodes, in either order.
    */
-  class Edge
+  class Edge : private totally_ordered<Edge>
   {
   public:
     /** Construct an invalid Edge. */
@@ -340,7 +340,7 @@ public:
    */
   size_type num_edges() const
   {
-    return _n_edge;
+    return _Edge_Vector.size();
   }
 
   /** Return the edge with index @a i.
@@ -404,7 +404,8 @@ public:
     {
       if (a < b)
       {
-        edge_type newEdge = Edge(this, _n_edge++, a._node_id, b._node_id);
+        edge_type newEdge = Edge(this, _Edge_Vector.size(), a._node_id, b._node_id);
+
         _n1_n2_edge.insert(std::make_pair(a._node_id, std::map<size_type, size_type>()));
         _n1_n2_edge[a._node_id].insert(std::make_pair(b._node_id, newEdge._edge_id));
         _Edge_Vector.push_back(newEdge);
@@ -412,7 +413,7 @@ public:
       }
       if (!(a < b))
       {
-        edge_type newEdge = Edge(this, _n_edge++, b._node_id, a._node_id);
+        edge_type newEdge = Edge(this, _Edge_Vector.size(), b._node_id, a._node_id);
         _n1_n2_edge.insert(std::make_pair(b._node_id, std::map<size_type, size_type>()));
         _n1_n2_edge[b._node_id].insert(std::make_pair(a._node_id, newEdge._edge_id));
         _Edge_Vector.push_back(newEdge);
@@ -434,8 +435,6 @@ public:
     _Node_Vector.clear();
     _n1_n2_edge.clear();
     _Edge_Vector.clear();
-    _n_node = 0;
-    _n_edge = 0;
   }
 
   //
@@ -553,8 +552,6 @@ private:
   std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge; 
                                       // Nested map with node1_id - [node2_id - edge_id] structure
   std::vector<edge_type> _Edge_Vector; // Vector holding Edge objects (ordered)
-  size_type _n_node = 0; // Total number of nodes
-  size_type _n_edge = 0; // Total number of edges
 };
 
 #endif // CME212_GRAPH_HPP

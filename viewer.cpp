@@ -37,7 +37,7 @@ int main(int argc, char** argv)
   }
 
   // Define our types
-  using GraphType = Graph;
+  using GraphType = Graph<std::nullptr_t>; // CHANGE LATER
   using NodeType  = typename GraphType::node_type;
 
 
