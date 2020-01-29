@@ -67,6 +67,13 @@ public:
       Graph::num_edges(), and argument type of Graph::node(size_type) */
   using size_type = unsigned;
 
+  struct NodeContents
+  {
+    Point _Point;
+    V _Value;
+    node_type _Node;
+  };
+
   //
   // CONSTRUCTORS AND DESTRUCTOR
   //
@@ -74,8 +81,7 @@ public:
   /** Construct an empty graph. */
   Graph()
   {
-    std::vector<Point> _Point_Vector;
-    std::vector<node_type> _Node_Vector;
+    std::vector<NodeContents> _Node_Struct_Vector;
     std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge;
     std::vector<edge_type> _Edge_Vector;
   }
@@ -117,8 +123,19 @@ public:
     /** Return this node's position. */
     const Point &position() const
     {
-      return _graph_pointer->_Point_Vector[_node_id];
+      return _graph_pointer->_Node_Struct_Vector[_node_id]._Point;
     }
+    node_value_type &value()
+    {
+      return _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
+    };
+
+    const node_value_type &value() const
+    {
+      const node_value_type constval = _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
+      return constval;
+    };
+
     /** Return this node's index, a number in the range [0, graph_size). */
     size_type index() const
     {
@@ -191,7 +208,7 @@ public:
    */
   size_type size() const
   {
-    return _Node_Vector.size();
+    return _Node_Struct_Vector.size();
   }
 
   /** Synonym for size(). */
@@ -207,22 +224,18 @@ public:
    *
    * Complexity: O(1) amortized operations.
    */
-  Node add_node(const Point &position)
+  Node add_node(const Point &position, const node_value_type &Val = node_value_type())
   {
     // if (!has_node(new_node))       // Uncommented since instructions doesn't specify whether
     // {                              // it is required to check if there exists a node with same position
-    Node new_node = Node();
-    new_node._node_id = _Node_Vector.size();
-    new_node._graph_pointer = this;
-    _Node_Vector.push_back(new_node);
-    _Point_Vector.push_back(position);
+    Node new_node = Node(this, _Node_Struct_Vector.size());
+    NodeContents nodecontents;
+    nodecontents._Point = position;
+    nodecontents._Node = new_node;
+    nodecontents._Value = Val;
+    _Node_Struct_Vector.push_back(nodecontents);
+
     return new_node;
-    // }                               // Lines 220 to 225 are needed to be uncommented for [if there exists
-                                       // a node with same position already, return the existing node]
-                                       //
-    // std::vector<Point>::iterator itr = std::find(_Point_Vector.begin(), _Point_Vector.end(), position);
-    // node_type existingnode = Node(this, std::distance(_Point_Vector.begin(), itr));
-    // return existingnode;
   }
 
   /** Determine if a Node belongs to this Graph
@@ -232,7 +245,7 @@ public:
    */
   bool has_node(const Node &n) const
   {
-    if ((n._node_id < this->_Node_Vector.size()) && (n._graph_pointer == this))
+    if ((n._node_id < this->_Node_Struct_Vector.size()) && (n._graph_pointer == this))
     {
       return true;
     }
@@ -250,7 +263,8 @@ public:
    */
   Node node(size_type i) const
   {
-    return _Node_Vector[i];
+    Node temp_node = Node(this, i);
+    return temp_node;
   }
 
   //
@@ -274,13 +288,13 @@ public:
     /** Return a node of this Edge */
     Node node1() const
     {
-      return _edge_graph_pointer->_Node_Vector[_n1_id];
+      return _edge_graph_pointer->_Node_Struct_Vector[_n1_id]._Node;
     }
 
     /** Return the other node of this Edge */
     Node node2() const
     {
-      return _edge_graph_pointer->_Node_Vector[_n2_id];
+      return _edge_graph_pointer->_Node_Struct_Vector[_n2_id]._Node;
     }
 
     /** Test whether this edge and @a e are equal.
@@ -314,7 +328,6 @@ public:
       {
         return false;
       }
-
     }
 
   private:
@@ -431,8 +444,7 @@ public:
    */
   void clear()
   {
-    _Point_Vector.clear();
-    _Node_Vector.clear();
+    _Node_Struct_Vector.clear();
     _n1_n2_edge.clear();
     _Edge_Vector.clear();
   }
@@ -547,10 +559,9 @@ private:
   // Use this space for your Graph class's internals:
   // helper functions, data members, and so forth.
 
-  std::vector<Point> _Point_Vector; // Vector holding points of nodes (ordered)
-  std::vector<node_type> _Node_Vector; // Vector holding Nodes (ordered)
-  std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge; 
-                                      // Nested map with node1_id - [node2_id - edge_id] structure
+  std::vector<NodeContents> _Node_Struct_Vector;
+  std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge;
+  // Nested map with node1_id - [node2_id - edge_id] structure
   std::vector<edge_type> _Edge_Vector; // Vector holding Edge objects (ordered)
 };
 
