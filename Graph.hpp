@@ -125,16 +125,6 @@ public:
     {
       return _graph_pointer->_Node_Struct_Vector[_node_id]._Point;
     }
-    node_value_type &value()
-    {
-      return _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
-    };
-
-    const node_value_type &value() const
-    {
-      const node_value_type constval = _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
-      return constval;
-    };
 
     /** Return this node's index, a number in the range [0, graph_size). */
     size_type index() const
@@ -146,6 +136,17 @@ public:
     // Supply definitions AND SPECIFICATIONS for:
     // node_value_type& value();
     // const node_value_type& value() const;
+    
+    node_value_type &value()
+    {
+      return _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
+    };
+
+    const node_value_type &value() const
+    {
+      const node_value_type constval = _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
+      return constval;
+    };
     // size_type degree() const;
     // incident_iterator edge_begin() const;
     // incident_iterator edge_end() const;
