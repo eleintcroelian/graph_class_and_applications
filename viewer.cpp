@@ -17,7 +17,6 @@
 
 #include "CME212/SFML_Viewer.hpp"
 #include "CME212/Util.hpp"
-
 #include "Graph.hpp"
 
 bool check_file_exists(std::ifstream &file, std::string arg)

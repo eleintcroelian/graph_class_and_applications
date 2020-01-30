@@ -125,17 +125,17 @@ public:
     }
     incident_iterator edge_begin()
     {
-      incident_iterator newiterator(_graph_pointer,_node_id);
+      incident_iterator newiterator(const_cast<Graph *>(_graph_pointer), _node_id);
       return newiterator;
     }
     incident_iterator edge_end()
     {
-      incident_iterator newiterator(_graph_pointer,_node_id);
-      newiterator._map_iter = newiterator._map_pointer->end();
-      newiterator._edge_id = newiterator._map_iter->second;
-      newiterator._edge_pointer = &(newiterator._graph_pointer->_Edge_Vector[newiterator._edge_id]);
+      incident_iterator newiteratorend(const_cast<Graph *>(_graph_pointer), _node_id);
+      newiteratorend._map_iter = (newiteratorend._map_pointer->end());
+      newiteratorend._edge_id = newiteratorend._map_iter->second;
+      newiteratorend._edge_pointer = &(newiteratorend._graph_pointer->_Edge_Vector[newiteratorend._edge_id]);
 
-      return newiterator;
+      return newiteratorend;
     }
     /** Return this node's position. */
     const Point &position() const
@@ -156,7 +156,7 @@ public:
 
     node_value_type &value()
     {
-      return _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
+      return const_cast<Graph *>(_graph_pointer)->_Node_Struct_Vector[_node_id]._Value;
     };
 
     const node_value_type &value() const
@@ -271,6 +271,11 @@ public:
     {
       return false;
     }
+  }
+
+  void set_value(size_type index, V val)
+  {
+    _Node_Struct_Vector[index]._Value = val;
   }
 
   /** Return the node with index @a i.
@@ -477,11 +482,11 @@ public:
   {
   public:
     // These type definitions let us use STL's iterator_traits.
-    using value_type = Node;                           // Element type
-    using pointer = Node *;                            // Pointers to elements
-    using reference = Node &;                          // Reference to elements
-    using difference_type = std::ptrdiff_t;            // Signed difference
-    using iterator_category = std::input_iterator_tag; // Weak Category, Proxy
+    using value_type = Node;                             // Element type
+    using pointer = Node *;                              // Pointers to elements
+    using reference = Node &;                            // Reference to elements
+    using difference_type = std::ptrdiff_t;              // Signed difference
+    using iterator_category = std::forward_iterator_tag; // Weak Category, Proxy
 
     /** Construct an invalid NodeIterator. */
     NodeIterator()
@@ -587,34 +592,33 @@ public:
     // bool operator==(const IncidentIterator&) const
     bool operator==(const IncidentIterator &iter) const
     {
-      if ((_node_id == iter._node_id) && (_edge_id == iter._edge_id))
+      if ((_edge_id == iter._edge_id))
       {
         return true;
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
 
     bool operator!=(const IncidentIterator &iter) const
     {
-      if ((_node_id != iter._node_id) && (_edge_id != iter._edge_id))
+      // std::cout << "!= called" << std::endl;
+
+      if ((_edge_id != iter._edge_id))
       {
         return true;
       }
-      else
-      {
         return false;
-      }
     }
     Edge operator*() const
     {
+      // std::cout << "* called" << std::endl;
       return *_edge_pointer;
     }
 
     IncidentIterator &operator++()
     {
+      // std::cout << "+ called" << std::endl;
+
       ++_map_iter;
       _edge_id = _map_iter->second;
       _edge_pointer = &(_graph_pointer->_Edge_Vector[_edge_id]);
@@ -669,7 +673,7 @@ public:
       return *_edge_pointer;
     }
 
-    EdgeIterator& operator++()
+    EdgeIterator &operator++()
     {
       _edge_pointer = &(_graph_pointer->_Edge_Vector[++_id]);
       return *this;
@@ -726,6 +730,7 @@ public:
     EdgeIterator enditer(const_cast<Graph *>(this), _Edge_Vector.size() - 1);
     return enditer;
   }
+
 private:
   // Use this space for your Graph class's internals:
   // helper functions, data members, and so forth.
