@@ -29,42 +29,81 @@
 
 #ifdef __linux__
 #include <X11/Xlib.h>
-struct XInit { XInit() { XInitThreads(); } };
+struct XInit
+{
+  XInit() { XInitThreads(); }
+};
 #endif
 
-namespace CME212 {
+namespace CME212
+{
 
 // Map C++ types to GL types at compilation time: gltype<T>::value
-template <GLenum V> struct gltype_v { static constexpr GLenum value = V; };
-template <class T> struct gltype {};
-template<> struct gltype<unsigned char>  : gltype_v<GL_UNSIGNED_BYTE>  {};
-template<> struct gltype<unsigned short> : gltype_v<GL_UNSIGNED_SHORT> {};
-template<> struct gltype<unsigned int>   : gltype_v<GL_UNSIGNED_INT>   {};
-template<> struct gltype<short>          : gltype_v<GL_SHORT>          {};
-template<> struct gltype<int>            : gltype_v<GL_INT>            {};
-template<> struct gltype<float>          : gltype_v<GL_FLOAT>          {};
-template<> struct gltype<double>         : gltype_v<GL_DOUBLE>         {};
+template <GLenum V>
+struct gltype_v
+{
+  static constexpr GLenum value = V;
+};
+template <class T>
+struct gltype
+{
+};
+template <>
+struct gltype<unsigned char> : gltype_v<GL_UNSIGNED_BYTE>
+{
+};
+template <>
+struct gltype<unsigned short> : gltype_v<GL_UNSIGNED_SHORT>
+{
+};
+template <>
+struct gltype<unsigned int> : gltype_v<GL_UNSIGNED_INT>
+{
+};
+template <>
+struct gltype<short> : gltype_v<GL_SHORT>
+{
+};
+template <>
+struct gltype<int> : gltype_v<GL_INT>
+{
+};
+template <>
+struct gltype<float> : gltype_v<GL_FLOAT>
+{
+};
+template <>
+struct gltype<double> : gltype_v<GL_DOUBLE>
+{
+};
 
 // A default color functor that returns white for anything it recieves
-struct DefaultColor {
+struct DefaultColor
+{
   template <typename NODE>
-  Color operator()(const NODE&) {
+  Color operator()(const NODE &)
+  {
     return Color(1);
   }
 };
 
 // A default position functor that returns node.position() for any node
-struct DefaultPosition {
+struct DefaultPosition
+{
   template <typename NODE>
-  Point operator()(const NODE& node) {
+  Point operator()(const NODE &node)
+  {
     return node.position();
   }
 };
 
 /** Print any outstanding OpenGL error to std::cerr. */
-void check_gl_error(const char* context = nullptr) {
-  GLenum errCode = glGetError();;
-  if (errCode != GL_NO_ERROR) {
+void check_gl_error(const char *context = nullptr)
+{
+  GLenum errCode = glGetError();
+  ;
+  if (errCode != GL_NO_ERROR)
+  {
     std::cerr << "OpenGL Error";
     if (context)
       std::cerr << " at " << context;
@@ -78,8 +117,7 @@ class SFML_Viewer
 {
   using safe_lock = std::lock_guard<std::mutex>;
 
- public:
-
+public:
   /** Constructor */
   SFML_Viewer(int sx = 640, int sy = 480)
       : window_(sf::VideoMode(sx, sy), "CME212",
@@ -89,12 +127,12 @@ class SFML_Viewer
         mouse_mask_(0)
   {
     init();
-    render_thread_ = std::thread([&]{ render_loop(); });
+    render_thread_ = std::thread([&] { render_loop(); });
   }
 
   /** Disable copy and assignment of SFML_Viewers */
-  SFML_Viewer(const SFML_Viewer&) = delete;
-  void operator=(const SFML_Viewer&) = delete;
+  SFML_Viewer(const SFML_Viewer &) = delete;
+  void operator=(const SFML_Viewer &) = delete;
 
   ~SFML_Viewer()
   {
@@ -109,7 +147,8 @@ class SFML_Viewer
   void event_loop()
   {
     sf::Event event;
-    while (window_.waitEvent(event)) {
+    while (window_.waitEvent(event))
+    {
       safe_lock lock(mutex_);
       handle_event(event);
     }
@@ -126,10 +165,11 @@ class SFML_Viewer
    * This draws only nodes. All nodes are drawn as white.
    */
   template <typename G>
-  void draw_graph_nodes(const G& g)
+  void draw_graph_nodes(const G &g)
   {
     // Lock for data update
-    { safe_lock lock(mutex_);
+    {
+      safe_lock lock(mutex_);
 
       // Convenience aliases
       using size_type = typename G::size_type;
@@ -140,7 +180,7 @@ class SFML_Viewer
         coords_.push_back(g.node(i).position());
 
       // Resize with all added nodes white
-      colors_.resize(coords_.size(), Color(1,1,1));
+      colors_.resize(coords_.size(), Color(1, 1, 1));
     }
 
     request_render();
@@ -159,10 +199,11 @@ class SFML_Viewer
    * This draws both nodes and edges. All nodes/edges are drawn as white.
    */
   template <typename G>
-  void draw_graph(const G& g)
+  void draw_graph(const G &g)
   {
     // Lock for data update
-    { safe_lock lock(mutex_);
+    {
+      safe_lock lock(mutex_);
 
       // Convenience aliases
       using size_type = typename G::size_type;
@@ -174,22 +215,25 @@ class SFML_Viewer
 
       // Insert the nodes and record mapping
       size_type num_nodes = g.num_nodes();
-      for (size_type i = 0; i < num_nodes; ++i) {
+      for (size_type i = 0; i < num_nodes; ++i)
+      {
         node_type n = g.node(i);
         nodemap[n.index()] = coords_.size();
         coords_.push_back(n.position());
       }
 
       // Resize with all added nodes white
-      colors_.resize(coords_.size(), Color(1,1,1));
+      colors_.resize(coords_.size(), Color(1, 1, 1));
 
       // Insert edges according to our mapping
       size_type num_edges = g.num_edges();
-      for (size_type i = 0; i < num_edges; ++i) {
+      for (size_type i = 0; i < num_edges; ++i)
+      {
         edge_type e = g.edge(i);
         auto it1 = nodemap.find(e.node1().index());
         auto it2 = nodemap.find(e.node2().index());
-        if (it1 != nodemap.end() && it2 != nodemap.end()) {
+        if (it1 != nodemap.end() && it2 != nodemap.end())
+        {
           edges_.push_back(it1->second);
           edges_.push_back(it2->second);
         }
@@ -206,7 +250,7 @@ class SFML_Viewer
    * Node maps are passed to, and modified by, add_nodes() and add_edges().
    */
   template <typename G>
-  std::map<typename G::node_type, unsigned> empty_node_map(const G&) const
+  std::map<typename G::node_type, unsigned> empty_node_map(const G &) const
   {
     return std::map<typename G::node_type, unsigned>();
   }
@@ -229,7 +273,7 @@ class SFML_Viewer
    */
   template <typename InputIterator, typename Map>
   void add_nodes(InputIterator first, InputIterator last,
-                 Map& node_map)
+                 Map &node_map)
   {
     return add_nodes(first, last, DefaultColor(), DefaultPosition(), node_map);
   }
@@ -255,7 +299,7 @@ class SFML_Viewer
    */
   template <typename InputIterator, typename ColorFn, typename Map>
   void add_nodes(InputIterator first, InputIterator last,
-                 ColorFn color_function, Map& node_map)
+                 ColorFn color_function, Map &node_map)
   {
     return add_nodes(first, last, color_function, DefaultPosition(), node_map);
   }
@@ -285,19 +329,25 @@ class SFML_Viewer
             typename ColorFn, typename PointFn, typename Map>
   void add_nodes(InputIterator first, InputIterator last,
                  ColorFn color_function, PointFn position_function,
-                 Map& node_map)
+                 Map &node_map)
   {
-    // Lock for data update
-    { safe_lock lock(mutex_);
 
-      for ( ; first != last; ++first) {
+    // Lock for data update
+    {
+      safe_lock lock(mutex_);
+      for (; first != last; ++first)
+      {
+
         // Get node and record the index mapping
         auto n = *first;
-        auto r = node_map.insert(typename Map::value_type(n,coords_.size()));
-        if (r.second) {   // new node was inserted
+        auto r = node_map.insert(typename Map::value_type(n, coords_.size()));
+        if (r.second)
+        { // new node was inserted
           coords_.push_back(position_function(n));
           colors_.push_back(color_function(n));
-        } else {          // node already exists and not updated
+        }
+        else
+        { // node already exists and not updated
           unsigned index = r.first->second;
           coords_[index] = position_function(n);
           colors_[index] = color_function(n);
@@ -323,16 +373,19 @@ class SFML_Viewer
    * add_nodes() (i.e. node_map.count(node) == 0) are ignored.
    */
   template <typename InputIterator, typename Map>
-  void add_edges(InputIterator first, InputIterator last, const Map& node_map)
+  void add_edges(InputIterator first, InputIterator last, const Map &node_map)
   {
     // Lock for data update
-    { safe_lock lock(mutex_);
+    {
+      safe_lock lock(mutex_);
 
-      for ( ; first != last; ++first) {
+      for (; first != last; ++first)
+      {
         auto edge = *first;
         auto n1 = node_map.find(edge.node1());
         auto n2 = node_map.find(edge.node2());
-        if (n1 != node_map.end() && n2 != node_map.end()) {
+        if (n1 != node_map.end() && n2 != node_map.end())
+        {
           edges_.push_back(n1->second);
           edges_.push_back(n2->second);
         }
@@ -343,10 +396,11 @@ class SFML_Viewer
   }
 
   /** Set a string label to display "green LCD" style. */
-  void set_label(const std::string& str)
+  void set_label(const std::string &str)
   {
     safe_lock lock(mutex_);
-    if (str != label_) {
+    if (str != label_)
+    {
       label_ = str;
       request_render();
     }
@@ -367,7 +421,8 @@ class SFML_Viewer
    */
   void center_view()
   {
-    { safe_lock lock(mutex_);
+    {
+      safe_lock lock(mutex_);
       center_camera();
     }
     request_render();
@@ -376,7 +431,8 @@ class SFML_Viewer
   /** Request that the screen update shortly. */
   void request_render()
   {
-    if (!render_requested_) {
+    if (!render_requested_)
+    {
       render_requested_ = true;
       render_flag_.notify_one();
     }
@@ -385,7 +441,8 @@ class SFML_Viewer
   /** Erase graphics. */
   void clear()
   {
-    { safe_lock lock(mutex_);
+    {
+      safe_lock lock(mutex_);
       coords_.clear();
       colors_.clear();
       edges_.clear();
@@ -394,8 +451,7 @@ class SFML_Viewer
     request_render();
   }
 
- private:
-
+private:
   /** Initialize the Window state
    */
   void init()
@@ -408,7 +464,7 @@ class SFML_Viewer
     glViewport(0, 0, window_.getSize().x, window_.getSize().y);
 
     // Set projection matrix
-    camera_.set_perspective(60, window_.getSize().x/double(window_.getSize().y),
+    camera_.set_perspective(60, window_.getSize().x / double(window_.getSize().y),
                             0.05, 1000);
 
     // Set up the camera view
@@ -434,81 +490,98 @@ class SFML_Viewer
    *
    * @param[in] event The mouse, keyboard, or screen event to be handled
    */
-  void handle_event(sf::Event& event)
+  void handle_event(sf::Event &event)
   {
-    switch(event.type)
+    switch (event.type)
     {
-      case sf::Event::MouseButtonPressed: {
-        if (event.mouseButton.button == sf::Mouse::Right)
-          mouse_mask_ |= BUTTON_RIGHT;
-        if (event.mouseButton.button == sf::Mouse::Left)
-          mouse_mask_ |= BUTTON_LEFT;
-        last_mouse_x_ = event.mouseButton.x;
-        last_mouse_y_ = event.mouseButton.y;
-      } break;
+    case sf::Event::MouseButtonPressed:
+    {
+      if (event.mouseButton.button == sf::Mouse::Right)
+        mouse_mask_ |= BUTTON_RIGHT;
+      if (event.mouseButton.button == sf::Mouse::Left)
+        mouse_mask_ |= BUTTON_LEFT;
+      last_mouse_x_ = event.mouseButton.x;
+      last_mouse_y_ = event.mouseButton.y;
+    }
+    break;
 
-      case sf::Event::MouseButtonReleased: {
-        if (event.mouseButton.button == sf::Mouse::Right)
-          mouse_mask_ &= ~BUTTON_RIGHT;
-        if (event.mouseButton.button == sf::Mouse::Left)
-          mouse_mask_ &= ~BUTTON_LEFT;
-        last_mouse_x_ = event.mouseButton.x;
-        last_mouse_y_ = event.mouseButton.y;
-      } break;
+    case sf::Event::MouseButtonReleased:
+    {
+      if (event.mouseButton.button == sf::Mouse::Right)
+        mouse_mask_ &= ~BUTTON_RIGHT;
+      if (event.mouseButton.button == sf::Mouse::Left)
+        mouse_mask_ &= ~BUTTON_LEFT;
+      last_mouse_x_ = event.mouseButton.x;
+      last_mouse_y_ = event.mouseButton.y;
+    }
+    break;
 
-      // The mouse moved over the screen
-      case sf::Event::MouseMoved: {
-        int xrel = event.mouseMove.x - last_mouse_x_;
-        int yrel = event.mouseMove.y - last_mouse_y_;
-        // Left mouse button is down
-        if (mouse_mask_ & BUTTON_LEFT) {
-          camera_.rotate_x( 0.01*yrel);
-          camera_.rotate_y(-0.01*xrel);
-          request_render();
-        }
-        // Right mouse button is down
-        if (mouse_mask_ & BUTTON_RIGHT) {
-          camera_.pan(-0.004*xrel, 0.004*yrel, 0);
-          request_render();
-        }
-        last_mouse_x_ = event.mouseMove.x;
-        last_mouse_y_ = event.mouseMove.y;
-        // Avoid rendering on every mouse motion event
-      } break;
-
-      case sf::Event::MouseWheelScrolled: {
-        // Wheel event
-        if (event.mouseWheelScroll.delta > 0)
-          camera_.zoom(1.10);
-        if (event.mouseWheelScroll.delta < 0)
-          camera_.zoom(0.91);
-
+    // The mouse moved over the screen
+    case sf::Event::MouseMoved:
+    {
+      int xrel = event.mouseMove.x - last_mouse_x_;
+      int yrel = event.mouseMove.y - last_mouse_y_;
+      // Left mouse button is down
+      if (mouse_mask_ & BUTTON_LEFT)
+      {
+        camera_.rotate_x(0.01 * yrel);
+        camera_.rotate_y(-0.01 * xrel);
         request_render();
-      } break;
-
-      case sf::Event::KeyPressed: {
-        // Keyboard 'c' to center
-        if (event.key.code == sf::Keyboard::C) {
-          center_camera();
-          request_render();
-        }
-        // Keyboard 'esc' or 'q' to exit
-        if (event.key.code == sf::Keyboard::Escape ||
-            event.key.code == sf::Keyboard::Q)
-          window_.close();
-      } break;
-
-      case sf::Event::Resized: {
-        //resize();   // XXX: TODO
+      }
+      // Right mouse button is down
+      if (mouse_mask_ & BUTTON_RIGHT)
+      {
+        camera_.pan(-0.004 * xrel, 0.004 * yrel, 0);
         request_render();
-      } break;
+      }
+      last_mouse_x_ = event.mouseMove.x;
+      last_mouse_y_ = event.mouseMove.y;
+      // Avoid rendering on every mouse motion event
+    }
+    break;
 
-      case sf::Event::Closed: {
+    case sf::Event::MouseWheelScrolled:
+    {
+      // Wheel event
+      if (event.mouseWheelScroll.delta > 0)
+        camera_.zoom(1.10);
+      if (event.mouseWheelScroll.delta < 0)
+        camera_.zoom(0.91);
+
+      request_render();
+    }
+    break;
+
+    case sf::Event::KeyPressed:
+    {
+      // Keyboard 'c' to center
+      if (event.key.code == sf::Keyboard::C)
+      {
+        center_camera();
+        request_render();
+      }
+      // Keyboard 'esc' or 'q' to exit
+      if (event.key.code == sf::Keyboard::Escape ||
+          event.key.code == sf::Keyboard::Q)
         window_.close();
-      } break;
+    }
+    break;
 
-      default:
-        break;
+    case sf::Event::Resized:
+    {
+      //resize();   // XXX: TODO
+      request_render();
+    }
+    break;
+
+    case sf::Event::Closed:
+    {
+      window_.close();
+    }
+    break;
+
+    default:
+      break;
     }
   }
 
@@ -525,7 +598,7 @@ class SFML_Viewer
   void render_label()
   {
     static const GLfloat skewscalem[] = {
-      3, 0, 0, 0, 0.5, 3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+        3, 0, 0, 0, 0.5, 3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 
     // Set both relevant matrices for 2D display.
     // The projection matrix is orthographic.
@@ -543,18 +616,20 @@ class SFML_Viewer
     glColor3f(0, .759, .437);
     glPointSize(3);
 
-    double expected_width = label_.size()*5*3 + 15;
+    double expected_width = label_.size() * 5 * 3 + 15;
     // Translate and skew.
     glTranslatef(window_.getSize().x - expected_width, 10, 0);
     glMultMatrixf(skewscalem);
 
     // Draw label
-    for (char label_c : label_) {
-      const char* code = Font5x7 + (label_c - 32)*5;
+    for (char label_c : label_)
+    {
+      const char *code = Font5x7 + (label_c - 32) * 5;
       glBegin(GL_POINTS);
       for (char x = 0; x < 5; ++x)
         for (char c = *code++, y = 6; c; c >>= 1, --y)
-          if (c & 1) glVertex2f(x, y);
+          if (c & 1)
+            glVertex2f(x, y);
       glEnd();
       glTranslatef(5, 0, 0);
     }
@@ -574,7 +649,8 @@ class SFML_Viewer
   {
     std::unique_lock<std::mutex> lock(mutex_);
 
-    do {
+    do
+    {
       // Activate the window for OpenGL rendering
       window_.setActive(true);
 
@@ -625,7 +701,7 @@ class SFML_Viewer
   }
 
 #ifdef __linux__
-  XInit init_;   // Must be first member
+  XInit init_; // Must be first member
 #endif
   sf::Window window_;
 
@@ -635,7 +711,7 @@ class SFML_Viewer
   bool render_requested_;
 
   static constexpr char BUTTON_RIGHT = (1 << 0);
-  static constexpr char BUTTON_LEFT  = (1 << 1);
+  static constexpr char BUTTON_LEFT = (1 << 1);
   char mouse_mask_;
   int last_mouse_x_, last_mouse_y_;
 

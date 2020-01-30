@@ -119,7 +119,24 @@ public:
     Node()
     {
     }
+    size_type degree() const
+    {
+      return _graph_pointer->_n1_n2_edge[_node_id].size();
+    }
+    incident_iterator edge_begin()
+    {
+      incident_iterator newiterator(_graph_pointer,_node_id);
+      return newiterator;
+    }
+    incident_iterator edge_end()
+    {
+      incident_iterator newiterator(_graph_pointer,_node_id);
+      newiterator._map_iter = newiterator._map_pointer->end();
+      newiterator._edge_id = newiterator._map_iter->second;
+      newiterator._edge_pointer = &(newiterator._graph_pointer->_Edge_Vector[newiterator._edge_id]);
 
+      return newiterator;
+    }
     /** Return this node's position. */
     const Point &position() const
     {
@@ -136,7 +153,7 @@ public:
     // Supply definitions AND SPECIFICATIONS for:
     // node_value_type& value();
     // const node_value_type& value() const;
-    
+
     node_value_type &value()
     {
       return _graph_pointer->_Node_Struct_Vector[_node_id]._Value;
@@ -473,19 +490,71 @@ public:
 
     // HW1 #2: YOUR CODE HERE
     // Supply definitions AND SPECIFICATIONS for:
-    // Node operator*() const
-    // NodeIterator& operator++()
-    // bool operator==(const NodeIterator&) const
+    Node operator*() const
+    {
+      // std::cout<<(*_node_pointer).index()<<std::endl;
+      return *_node_pointer;
+    }
+
+    NodeIterator &operator++()
+    {
+      _node_pointer = &(_graph_pointer->_Node_Struct_Vector[++_id]._Node);
+      return *this;
+    }
+    bool operator==(const NodeIterator &iter) const
+    {
+      if (_id == iter._id)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    bool operator!=(const NodeIterator &iter) const
+    {
+      if (_id != iter._id)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
 
   private:
     friend class Graph;
     // HW1 #2: YOUR CODE HERE
+    NodeIterator(Graph *graph_pointer, size_type idinput)
+    {
+      //const_cast<Graph *>
+      _id = idinput;
+      _graph_pointer = graph_pointer;
+      _node_pointer = &(_graph_pointer->_Node_Struct_Vector[_id]._Node);
+    }
+    node_type *_node_pointer;
+    Graph *_graph_pointer;
+    size_type _id;
   };
 
   // HW1 #2: YOUR CODE HERE
   // Supply definitions AND SPECIFICATIONS for:
-  // node_iterator node_begin() const
-  // node_iterator node_end() const
+  node_iterator node_begin() const
+  {
+    NodeIterator newiter(const_cast<Graph *>(this), 0);
+    return newiter;
+  }
+  node_iterator node_end() const
+  {
+    NodeIterator enditer(const_cast<Graph *>(this), _Node_Struct_Vector.size() - 1);
+
+    // newiter._id = _Node_Struct_Vector.size();//const_cast<Node *>
+    // newiter._node_pointer = &((_Node_Struct_Vector[newiter._id]._Node));
+    // std::cout << newiter._id << std::endl;
+    return enditer;
+  }
 
   //
   // Incident Iterator
@@ -507,16 +576,65 @@ public:
     IncidentIterator()
     {
     }
-
+    edge_type *_edge_pointer;
+    size_type _edge_id;
+    std::map<size_type, size_type> *_map_pointer;
+    std::map<size_type, size_type>::iterator _map_iter;
     // HW1 #3: YOUR CODE HERE
     // Supply definitions AND SPECIFICATIONS for:
     // Edge operator*() const
     // IncidentIterator& operator++()
     // bool operator==(const IncidentIterator&) const
+    bool operator==(const IncidentIterator &iter) const
+    {
+      if ((_node_id == iter._node_id) && (_edge_id == iter._edge_id))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    bool operator!=(const IncidentIterator &iter) const
+    {
+      if ((_node_id != iter._node_id) && (_edge_id != iter._edge_id))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    Edge operator*() const
+    {
+      return *_edge_pointer;
+    }
+
+    IncidentIterator &operator++()
+    {
+      ++_map_iter;
+      _edge_id = _map_iter->second;
+      _edge_pointer = &(_graph_pointer->_Edge_Vector[_edge_id]);
+      return *this;
+    }
 
   private:
     friend class Graph;
+    IncidentIterator(Graph *graph_pointer, size_type node_id)
+    {
+      _graph_pointer = graph_pointer;
+      _node_id = node_id;
+      _map_pointer = &(_graph_pointer->_n1_n2_edge[_node_id]);
+      _map_iter = _map_pointer->begin();
+      _edge_id = _map_iter->second;
+      _edge_pointer = &(_graph_pointer->_Edge_Vector[_edge_id]);
+    }
     // HW1 #3: YOUR CODE HERE
+    Graph *_graph_pointer;
+    size_type _node_id;
   };
 
   //
@@ -545,17 +663,69 @@ public:
     // Edge operator*() const
     // EdgeIterator& operator++()
     // bool operator==(const EdgeIterator&) const
+    Edge operator*() const
+    {
+      // std::cout<<(*_node_pointer).index()<<std::endl;
+      return *_edge_pointer;
+    }
+
+    EdgeIterator& operator++()
+    {
+      _edge_pointer = &(_graph_pointer->_Edge_Vector[++_id]);
+      return *this;
+    }
+    bool operator==(const EdgeIterator &iter) const
+    {
+      if (_id == iter._id)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    bool operator!=(const EdgeIterator &iter) const
+    {
+      if (_id != iter._id)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
 
   private:
     friend class Graph;
     // HW1 #5: YOUR CODE HERE
+    EdgeIterator(Graph *graph_pointer, size_type idinput)
+    {
+      //const_cast<Graph *>
+      _id = idinput;
+      _graph_pointer = graph_pointer;
+      _edge_pointer = &(_graph_pointer->_Edge_Vector[_id]);
+    }
+    edge_type *_edge_pointer;
+    Graph *_graph_pointer;
+    size_type _id;
   };
 
   // HW1 #5: YOUR CODE HERE
   // Supply definitions AND SPECIFICATIONS for:
   // edge_iterator edge_begin() const
   // edge_iterator edge_end() const
-
+  edge_iterator edge_begin() const
+  {
+    EdgeIterator newiter(const_cast<Graph *>(this), 0);
+    return newiter;
+  }
+  edge_iterator edge_end() const
+  {
+    EdgeIterator enditer(const_cast<Graph *>(this), _Edge_Vector.size() - 1);
+    return enditer;
+  }
 private:
   // Use this space for your Graph class's internals:
   // helper functions, data members, and so forth.
