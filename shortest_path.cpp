@@ -84,18 +84,6 @@ NodeIter nearest_node(const GraphType &g, const Point &point)
  * the root have value() -1.
  */
 
-unsigned int minDistance(std::vector<double> &dist, std::vector<bool> &sptSet, GraphType &g)
-{
-  // Initialize min value
-  double min = std::numeric_limits<double>::max();
-  unsigned int min_index;
-
-  for (auto it = g.node_begin(); it != g.node_end(); ++it)
-    if (sptSet[(*it).index()] == false && dist[(*it).index()] <= min)
-      min = dist[(*it).index()], min_index = (*it).index();
-  return min_index;
-}
-
 double distancebetween(GraphType::Node n1, GraphType::Node n2)
 {
   auto p1 = n1.position();
@@ -106,56 +94,64 @@ double distancebetween(GraphType::Node n1, GraphType::Node n2)
 
 int shortest_path_lengths(GraphType &g, NodeType &root)
 {
-  //Dijkstra's Algorithm
-
   unsigned int root_id = root.index();
-  std::vector<double> distances(g.num_nodes(), std::numeric_limits<double>::max()); // Distance vector initialized to inf except for root
-  std::vector<bool> sptset(g.num_nodes(), false);
-  distances[root_id] = 0.;
 
-  for (auto it = g.node_begin(); it != g.node_end(); ++it)
+  std::vector<unsigned int> queue;
+  std::vector<bool> visited(g.num_nodes(), false);
+  std::vector<double> distances(g.num_nodes(), 0);
+
+  visited[root_id] = true;
+  queue.push_back(root_id);
+  distances[root_id] = 0;
+  // for (auto it = g.node_begin(); it != g.node_end(); ++it)
+  // {
+  //   auto currentnode = (*it);
+  //   auto currentnodeid = currentnode.index();
+  //   std::cout << "Current Node Number:" << currentnodeid << std::endl;
+  //   for (auto kt = currentnode.edge_begin(); kt != currentnode.edge_end(); ++kt)
+  //   {
+  //     int b;
+  //     if ((*kt).node2().index() == currentnodeid)
+  //     {
+  //       b=(*kt).node1().index();
+  //     }
+  //     else
+  //     {
+  //       b=(*kt).node2().index();
+  //     }
+  //     std::cout << "Adjacent Node:" << b<< std::endl;
+  //   }
+  // }
+
+  while (!queue.empty())
   {
-    int currentnodeindex = minDistance(distances, sptset, g);
-    auto currentnode = g.node(currentnodeindex);
-    sptset[currentnodeindex] = true;
+    auto currentnodeid = queue[0];
+    auto currentnode = g.node(currentnodeid);
 
-    // std::cout << "Current Node " << currentnodeindex << std::endl;
-    auto inc_iter_end = currentnode.edge_end();
-    auto inc_iter = currentnode.edge_begin();
+    queue.erase(queue.begin());
 
-    for (; inc_iter != inc_iter_end; ++inc_iter)
+    for (auto kt = currentnode.edge_begin(); kt != currentnode.edge_end(); ++kt)
     {
-      auto adjnode = (*inc_iter).node2();
-      double dist2currentnode = distancebetween(currentnode, adjnode);
-      // std::cout << "Adjacent Node " << adjnode.index() << "Distance from current node " << dist2currentnode << std::endl;
-    }
-
-    // Iterate over the adjacent nodes and update their dist values only if they are not in sptset
-    // and total weight of path from root is smaller than current value of distances[current node]
-    for (auto inc_iter = currentnode.edge_begin(); inc_iter != currentnode.edge_end(); ++inc_iter)
-    {
-      auto adjnode = (*inc_iter).node2();
-      double dist2currentnode = distancebetween(currentnode, adjnode);
-
-      // std::cout << "Adjacent Node " << adjnode.index() << "Distance from current node " << dist2currentnode << std::endl;
-
-      if ((sptset[adjnode.index()] == false) && (distances[currentnodeindex] < dist2currentnode + distances[adjnode.index()]))
+      int adjnodeind;
+      if ((*kt).node2().index() == currentnodeid)
       {
-        distances[adjnode.index()] = distances[currentnode.index()] + dist2currentnode;
+        adjnodeind=(*kt).node1().index();
+      }
+      else
+      {
+        adjnodeind=(*kt).node2().index();
+      }
+      if (!visited[adjnodeind])
+      {
+        visited[adjnodeind] = true;
+        queue.push_back(adjnodeind);
+        distances[adjnodeind] = distances[currentnodeid] + 1;
       }
     }
   }
 
-  for (auto it = distances.begin(); it != distances.end(); ++it)
-  {
-    if ((*it) > 1.e200)
-    {
-      (*it) = 0.;
-    }
-  }
-
   auto maxdist = *(std::max_element(distances.begin(), distances.end()));
-      // std::cout <<"Max Dist is ---> " << maxdist<< std::endl;
+  std::cout <<(maxdist)<<std::endl;
 
   for (auto it = distances.begin(); it != distances.end(); ++it)
   {
@@ -166,16 +162,9 @@ int shortest_path_lengths(GraphType &g, NodeType &root)
   for (auto it = g.node_begin(); it != g.node_end(); ++it)
   {
     g.set_value((*it).index(), distances[(*it).index()]);
-    // std::cout <<distances[(*it).index()] << std::endl;
   }
-  return 0;
-}
 
-void colorize(GraphType &g)
-{
-  for (auto it = g.node_begin(); it != g.node_end(); ++it)
-  {
-  }
+  return 0;
 }
 
 int main(int argc, char **argv)
@@ -220,7 +209,7 @@ int main(int argc, char **argv)
   auto root = nearest_node(graph, Point(-1, 0, 1));
   auto rootnode = (*root);
   auto i = shortest_path_lengths(graph, rootnode);
-
+  (void)i;
   auto node_map = viewer.empty_node_map(graph);
   colorFunc colorfunctor;
 

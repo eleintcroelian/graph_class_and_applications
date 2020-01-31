@@ -445,6 +445,12 @@ public:
         _n1_n2_edge.insert(std::make_pair(a._node_id, std::map<size_type, size_type>()));
         _n1_n2_edge[a._node_id].insert(std::make_pair(b._node_id, newEdge._edge_id));
         _Edge_Vector.push_back(newEdge);
+        
+        if (_n1_n2_edge.find(b._node_id)==_n1_n2_edge.end())
+        {
+          _n1_n2_edge.insert(std::make_pair(b._node_id, std::map<size_type, size_type>()));
+        }
+        _n1_n2_edge[b._node_id].insert(std::make_pair(a._node_id, newEdge._edge_id));
         return newEdge;
       }
       if (!(a < b))
@@ -453,6 +459,11 @@ public:
         _n1_n2_edge.insert(std::make_pair(b._node_id, std::map<size_type, size_type>()));
         _n1_n2_edge[b._node_id].insert(std::make_pair(a._node_id, newEdge._edge_id));
         _Edge_Vector.push_back(newEdge);
+        if (_n1_n2_edge.find(a._node_id)==_n1_n2_edge.end())
+        {
+        _n1_n2_edge.insert(std::make_pair(a._node_id, std::map<size_type, size_type>()));
+        }
+        _n1_n2_edge[a._node_id].insert(std::make_pair(b._node_id, newEdge._edge_id));
         return newEdge;
       }
     }
@@ -607,7 +618,7 @@ public:
       {
         return true;
       }
-        return false;
+      return false;
     }
     Edge operator*() const
     {

@@ -24,29 +24,50 @@
  * @a first <= i < @a last and @a pred(*i) appear in order of the original range.
  */
 template <typename Pred, typename It>
-class filter_iterator : private equality_comparable<filter_iterator<Pred,It>>
+class filter_iterator : private equality_comparable<filter_iterator<Pred, It>>
 {
- public:
+public:
   // Get all of the iterator traits and make them our own
-  using value_type        = typename std::iterator_traits<It>::value_type;
-  using pointer           = typename std::iterator_traits<It>::pointer;
-  using reference         = typename std::iterator_traits<It>::reference;
-  using difference_type   = typename std::iterator_traits<It>::difference_type;
+  using value_type = typename std::iterator_traits<It>::value_type;
+  using pointer = typename std::iterator_traits<It>::pointer;
+  using reference = typename std::iterator_traits<It>::reference;
+  using difference_type = typename std::iterator_traits<It>::difference_type;
   using iterator_category = typename std::input_iterator_tag;
 
   // Constructor
-  filter_iterator(const Pred& p, const It& first, const It& last)
-      : p_(p), it_(first), end_(last) {
+  filter_iterator(const Pred &p, const It &first, const It &last)
+      : p_(p), it_(first), end_(last)
+  {
     // HW1 #4: YOUR CODE HERE
   }
 
   // HW1 #4: YOUR CODE HERE
   // Supply definitions AND SPECIFICATIONS for:
-  // value_type operator*() const;
-  // filter_iterator& operator++();
-  // bool operator==(const self_type&) const;
+  value_type operator*() const
+  {
+    return (*it_);
+  };
 
- private:
+  filter_iterator &operator++()
+  {
+    ++it_;
+    
+    while ((it_ != end_)&&(!p_(*it_)))
+    {
+      ++it_;
+    }
+    return *this; 
+  };
+  bool operator==(const filter_iterator &filtiter) const
+  {
+    if (*(filtiter.it_) == *it_)
+    {
+      return true;
+    }
+    return false;
+  };
+
+private:
   Pred p_;
   It it_;
   It end_;
@@ -62,9 +83,10 @@ class filter_iterator : private equality_comparable<filter_iterator<Pred,It>>
  * auto it = make_filtered(a.begin(), a.end(), [](int k) {return k % 2 == 0;});
  */
 template <typename Pred, typename Iter>
-filter_iterator<Pred,Iter> make_filtered(const Iter& it, const Iter& end,
-                                         const Pred& p) {
-  return filter_iterator<Pred,Iter>(p, it, end);
+filter_iterator<Pred, Iter> make_filtered(const Iter &it, const Iter &end,
+                                          const Pred &p)
+{
+  return filter_iterator<Pred, Iter>(p, it, end);
 }
 
 // HW1 #4: YOUR CODE HERE
@@ -73,25 +95,27 @@ filter_iterator<Pred,Iter> make_filtered(const Iter& it, const Iter& end,
 // If you'd like you may create new nodes and tets files.
 
 /** Test predicate for HW1 #4 */
-struct SlicePredicate {
+struct SlicePredicate
+{
   template <typename NODE>
-  bool operator()(const NODE& n) {
+  bool operator()(const NODE &n)
+  {
     return n.position().x < 0;
   }
 };
 
-
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   // Check arguments
-  if (argc < 3) {
+  if (argc < 3)
+  {
     std::cerr << "Usage: " << argv[0] << " NODES_FILE TETS_FILE\n";
     exit(1);
   }
 
   // Define our types
   using GraphType = Graph<int>;
-  using NodeType  = typename GraphType::node_type;
+  using NodeType = typename GraphType::node_type;
 
   // Construct a Graph
   GraphType graph;
@@ -107,7 +131,7 @@ int main(int argc, char** argv)
   // Create a tets_file from the second input argument
   std::ifstream tets_file(argv[2]);
   // Interpret each line of the tets_file as four ints which refer to nodes
-  std::array<int,4> t;
+  std::array<int, 4> t;
   while (CME212::getline_parsed(tets_file, t))
     for (unsigned i = 1; i < t.size(); ++i)
       for (unsigned j = 0; j < i; ++j)
@@ -121,10 +145,17 @@ int main(int argc, char** argv)
 
   // HW1 #4: YOUR CODE HERE
   // Use the filter_iterator to plot an induced subgraph.
+  SlicePredicate slice;
+  auto filtiter = make_filtered(graph.node_begin(), graph.node_end(), slice);
+  auto filtiter_end = make_filtered(graph.node_end(), graph.node_end(), slice);
+
+  auto node_map = viewer.empty_node_map(graph);
+  viewer.add_nodes(filtiter,filtiter_end, node_map);
 
   // Center the view and enter the event loop for interactivity
   viewer.center_view();
   viewer.event_loop();
+  std::cout<<"asda"<<std::endl;
 
   return 0;
 }
