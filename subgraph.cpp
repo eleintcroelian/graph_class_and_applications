@@ -16,6 +16,9 @@
 
 #include "Graph.hpp"
 
+using GraphType = Graph<double>;
+using NodeType = typename GraphType::node_type;
+using NodeIter = typename GraphType::node_iterator;
 /** An iterator that skips over elements of another iterator based on whether
  * those elements satisfy a predicate.
  *
@@ -51,12 +54,12 @@ public:
   filter_iterator &operator++()
   {
     ++it_;
-    
-    while ((it_ != end_)&&(!p_(*it_)))
+
+    while ((it_ != end_) && (!p_(*it_)))
     {
       ++it_;
     }
-    return *this; 
+    return *this;
   };
   bool operator==(const filter_iterator &filtiter) const
   {
@@ -103,7 +106,105 @@ struct SlicePredicate
     return n.position().x < 0;
   }
 };
+struct Robocop
+{
+  template <typename NODE>
+  bool operator()(const NODE &n)
+  {
+    return ((n.position().z > t / 2.) || (n.position().z < -t / 2.));
+  }
+  // Point center_ = Point(0.,0.5,0.);
+  // double radius = 0.3;
+  double t = 0.1;
+};
+struct distanceFunc
+{
+  distanceFunc(const Point Refpoint) : _refpoint(Refpoint) {}
 
+  bool operator()(GraphType::node_type n1, GraphType::node_type n2)
+  {
+    auto point1 = n1.position();
+    auto point2 = n2.position();
+    auto temppoint1 = point1 - _refpoint;
+    auto dist1 = norm(temppoint1);
+    auto temppoint2 = point2 - _refpoint;
+    auto dist2 = norm(temppoint2);
+
+    return (dist1 > dist2);
+  }
+  const Point _refpoint;
+};
+
+struct colorFunc
+{
+  colorFunc() {}
+
+  CME212::Color operator()(GraphType::node_type n1)
+  {
+    return (CME212::Color::make_heat(n1.value()));
+  }
+};
+
+NodeIter nearest_node(const GraphType &g, const Point &point)
+{
+  // HW1 #3: YOUR CODE HERE
+  distanceFunc distance(point);
+  auto result = std::min_element(g.node_begin(), g.node_end(), distance);
+  return result;
+}
+
+int shortest_path_lengths(GraphType &g, NodeType &root)
+{
+  unsigned int root_id = root.index();
+
+  std::vector<unsigned int> queue;
+  std::vector<bool> visited(g.num_nodes(), false);
+  std::vector<double> distances(g.num_nodes(), 0);
+
+  visited[root_id] = true;
+  queue.push_back(root_id);
+  distances[root_id] = 0;
+
+  while (!queue.empty())
+  {
+    auto currentnodeid = queue[0];
+    auto currentnode = g.node(currentnodeid);
+
+    queue.erase(queue.begin());
+
+    for (auto kt = currentnode.edge_begin(); kt != currentnode.edge_end(); ++kt)
+    {
+      int adjnodeind;
+      if ((*kt).node2().index() == currentnodeid)
+      {
+        adjnodeind=(*kt).node1().index();
+      }
+      else
+      {
+        adjnodeind=(*kt).node2().index();
+      }
+      if (!visited[adjnodeind])
+      {
+        visited[adjnodeind] = true;
+        queue.push_back(adjnodeind);
+        distances[adjnodeind] = distances[currentnodeid] + 1;
+      }
+    }
+  }
+
+  auto maxdist = *(std::max_element(distances.begin(), distances.end()));
+  for (auto it = distances.begin(); it != distances.end(); ++it)
+  {
+    (*it) = (*it) / maxdist;
+  }
+
+  for (auto it = g.node_begin(); it != g.node_end(); ++it)
+  {
+    g.set_value((*it).index(), distances[(*it).index()]);
+  }
+
+  return 0;
+}
 int main(int argc, char **argv)
 {
   // Check arguments
@@ -114,7 +215,7 @@ int main(int argc, char **argv)
   }
 
   // Define our types
-  using GraphType = Graph<int>;
+  using GraphType = Graph<double>;
   using NodeType = typename GraphType::node_type;
 
   // Construct a Graph
@@ -145,17 +246,23 @@ int main(int argc, char **argv)
 
   // HW1 #4: YOUR CODE HERE
   // Use the filter_iterator to plot an induced subgraph.
-  SlicePredicate slice;
-  auto filtiter = make_filtered(graph.node_begin(), graph.node_end(), slice);
-  auto filtiter_end = make_filtered(graph.node_end(), graph.node_end(), slice);
+  Robocop robo;
+  auto filtiter = make_filtered(graph.node_begin(), graph.node_end(), robo);
+  auto filtiter_end = make_filtered(graph.node_end(), graph.node_end(), robo);
+
+  auto root = nearest_node(graph, Point(0, 5, 0));
+  auto rootnode = (*root);
+  auto i = shortest_path_lengths(graph, rootnode);
+  (void)i;
+  colorFunc colorfunctor;
 
   auto node_map = viewer.empty_node_map(graph);
-  viewer.add_nodes(filtiter,filtiter_end, node_map);
+  viewer.add_nodes(filtiter, filtiter_end, colorfunctor,node_map);
+  viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
 
   // Center the view and enter the event loop for interactivity
   viewer.center_view();
   viewer.event_loop();
-  std::cout<<"asda"<<std::endl;
 
   return 0;
 }

@@ -84,13 +84,6 @@ NodeIter nearest_node(const GraphType &g, const Point &point)
  * the root have value() -1.
  */
 
-double distancebetween(GraphType::Node n1, GraphType::Node n2)
-{
-  auto p1 = n1.position();
-  auto p2 = n2.position();
-  auto temppoint = p2 - p1;
-  return norm(temppoint);
-}
 
 int shortest_path_lengths(GraphType &g, NodeType &root)
 {
@@ -103,25 +96,6 @@ int shortest_path_lengths(GraphType &g, NodeType &root)
   visited[root_id] = true;
   queue.push_back(root_id);
   distances[root_id] = 0;
-  // for (auto it = g.node_begin(); it != g.node_end(); ++it)
-  // {
-  //   auto currentnode = (*it);
-  //   auto currentnodeid = currentnode.index();
-  //   std::cout << "Current Node Number:" << currentnodeid << std::endl;
-  //   for (auto kt = currentnode.edge_begin(); kt != currentnode.edge_end(); ++kt)
-  //   {
-  //     int b;
-  //     if ((*kt).node2().index() == currentnodeid)
-  //     {
-  //       b=(*kt).node1().index();
-  //     }
-  //     else
-  //     {
-  //       b=(*kt).node2().index();
-  //     }
-  //     std::cout << "Adjacent Node:" << b<< std::endl;
-  //   }
-  // }
 
   while (!queue.empty())
   {
@@ -156,7 +130,6 @@ int shortest_path_lengths(GraphType &g, NodeType &root)
   for (auto it = distances.begin(); it != distances.end(); ++it)
   {
     (*it) = (*it) / maxdist;
-    // std::cout << (*it) << std::endl;
   }
 
   for (auto it = g.node_begin(); it != g.node_end(); ++it)
