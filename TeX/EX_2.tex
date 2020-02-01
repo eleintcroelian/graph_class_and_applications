@@ -1,0 +1,190 @@
+\documentclass[12pt,letterpaper,twoside]{article}
+
+\usepackage{cme212}
+
+\begin{document}
+
+{\centering \textbf{Paper Exercise 2\\ Due Tuesday, February 11th by
+    4:30 P.M. PST via GradeScope\\}}
+\vspace*{-8pt}\noindent\rule{\linewidth}{1pt}
+
+\paragraph{Question 0: } Write an implementation of {\tt compute\_median} below that computes and returns the median value of an array of {\tt double}s. The implementation should have an average time complexity no worse than $\O(n)$ and are only allowed to use functionality available in the header files \href{https://en.cppreference.com/w/cpp/algorithm}{{\tt <algorithm>}} and \href{https://en.cppreference.com/w/cpp/container/vector}{{\tt <vector>}}. For an even number of values, return the mean of the two middle values. HINT: Find a more general function in {\tt <algorithm>} that you can map this {\tt compute\_median} onto.
+\begin{cpp}
+#include <algorithm>
+#include <vector>
+
+/** Compute the median of an array of doubles.
+ * @param[in] values  The array of values.
+ * @param[in]      n  The number of values in the array.
+ * @result The median value of the array.
+ *
+ * @pre @a n > 0
+ * @post Let sorted_v be @a values sorted by op<.
+ *         If @a n odd,  result ==  sorted_v[n/2]
+ *         If @a n even, result == (sorted_v[n/2] + sorted_v[n/2-1])/2
+ */
+double compute_median(const double* values, unsigned n)
+\end{cpp}
+
+
+\paragraph{Question 1: Lecture 4} Consider a data type $U$ with abstract type $U =
+\{u_0,\dots,u_{n-1}\}$, where each $u_i$ is an integer. $U$'s iterator
+iterates over the values in \emph{any} order. Assume $U$ has been implemented with a \texttt{std::vector<int> value\_} that contains all the elements. Write an
+implementation of \texttt{U::iterator U::erase(U::iterator it)} that
+has $O(1)$ time complexity. The specification is not necessary and we
+emphasize that the returned iterator references an unordered
+collection of elements.
+
+
+\paragraph{Question 2: Lecture 4} Use the \texttt{erase} method you wrote above to write a method with the
+following specification. Never use an invalid iterator---all iterators to a
+\texttt{vector} become invalid after any \texttt{insert} or
+\texttt{erase}---and your method should work for other STL containers, such
+as \href{https://en.cppreference.com/w/cpp/container/map}{\texttt{map}} and 
+\href{https://en.cppreference.com/w/cpp/container/list}{\texttt{list}}.
+
+\begin{cpp}
+/** Erase all elements of @a x for which @a pred returns true.
+ * @param[in,out] x Container of elements.
+ * @param[in] pred Predicate that takes an element and returns a bool.
+ *
+ * @post new @a x.size() <= old @a x.size()
+ * @post new @a x contains exactly those elements e of old @a x for 
+ *     which @a pred(e) returned false, and in the same relative order.
+ */
+template <typename Container, typename Predicate>
+void erase_if(Container& x, Predicate pred);
+\end{cpp}
+
+\paragraph{Question 3: Lecture 6}
+Remember the \texttt{Book} class from Exercise 1?
+\begin{cpp}
+	class Book:
+	{
+		public:
+		Book(std::string filename) 
+		{
+			std::string sent;
+			std::ifstream book_file(filename);
+			while(std::getline(book_file, sent))
+			{
+				book_.push_back(split(sent, ' '));
+			}
+			book_file.close();
+		}
+		
+	}
+\end{cpp}
+
+There is a problem with this class, it does not implement RAII. There are two points where we need to fix this.
+
+\textbf{a}
+
+In the constructor if anything goes wrong in the \texttt{while} loop the error will immediately propagate up the stack and the \texttt{close()} function will never be called. This can cause memory leak. Use exception handling to fix this issue.
+
+\textbf{b}
+
+Assume that we are reading in large books and are worried that we might run out of space on the stack so we are allocating \texttt{std::vector<std::vector<string>> book\_} on the heap. this would change the class outline as such.
+	\begin{cpp}
+	class Book:
+	{
+		public:
+		Book(std::string filename) 
+		{
+			std::string sent;
+			std::ifstream book_file(filename);
+			try{
+				while(std::getline(book_file, sent))
+				{
+					book_->push_back(split(sent, ' '));
+				}
+				book_file.close();
+			}
+			catch(){
+				book_file.close()
+				std::cout<<"something went wrong while reading the book."<<std::endl;
+				throw;
+			}	
+		}
+		private:
+		std::vector<std::vector<string>> *book_;
+	}
+\end{cpp}
+
+Now there is another problem. The default destructor does not clean up the heap allocated memory. This means that as soon as a book object goes out of scope we have a memory leak. Implement the \texttt{Book} class following RAII.
+
+\paragraph{Question 4: Lectures 6 \& 7}
+We have to be careful with resource allocation when it comes to inheritance. Consider the following polymorphism example.
+
+\begin{cpp}
+	class Student
+	{
+		private:
+			std::string name_;
+		public:
+			Student(std::string name): name_(name){};
+			virtual std::string print()
+			{
+				std::cout<<"Hello my name is "<< name_<<std::endl;
+			}
+		
+	};
+	
+	class UndergradStudent: public Student
+	{
+		private:
+		std::string uni_;
+		public:
+		Student(std::string name, std::string uni): Student(name), uni_(uni) {};
+		
+		virtual std::string print()
+		{
+			std::cout<<"Hello my name is "<< name_<<std::endl;
+			std::cout<<"I am an undergrad at "<< uni_<<std::endl;
+		}
+		
+	};
+	
+	class GradStudent: public Student
+	{
+		private:
+		const fstream thesis_;
+		
+		public:
+		GradStudent(std::string name, std::string uni, std::string thesis): 
+		Student(name, uni)
+		{
+			thesis_.open(thesis);
+		};
+	
+		virtual std::string print()
+		{
+			std::cout<<"Hello my name is "<< name_<<std::endl;
+			std::cout<<"I am a grad student at "<< uni_<<std::endl;
+		};
+		
+		~GradStudent(){
+			thesis_.close();
+		};	
+	};
+	
+	int main()
+	{
+		std::vector<Student*> students;
+		students.push_back(GradStudent('Amy','Stanford', 'Amys_thesis.txt'));
+		students.push_back(Student('Karl','Berkley'));
+		students.push_back(Student('Steve'));
+		
+		for(auto student= students.begin(); student != student.end(); student++)
+		{
+			student->print();
+		}
+		delete students;
+	}
+\end{cpp}
+
+	What goes wrong in the code above and how do you fix it?
+	
+
+\end{document}
+
