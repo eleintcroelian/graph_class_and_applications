@@ -19,6 +19,10 @@
 #include <map>
 #include <numeric>
 
+// Suppress compiler warnings generated from OpenGL deprecation on Mac OS
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
+#endif
 #include <SFML/Window.hpp>
 #include <SFML/OpenGL.hpp>
 
