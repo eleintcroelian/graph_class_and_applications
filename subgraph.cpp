@@ -37,13 +37,16 @@ public:
   using difference_type = typename std::iterator_traits<It>::difference_type;
   using iterator_category = typename std::input_iterator_tag;
 
+//--design_1
+//--filter must move to first valid element
+//--START  
   // Constructor
   filter_iterator(const Pred &p, const It &first, const It &last)
       : p_(p), it_(first), end_(last)
   {
     // HW1 #4: YOUR CODE HERE
   }
-
+//--END
   // HW1 #4: YOUR CODE HERE
   // Supply definitions AND SPECIFICATIONS for:
   value_type operator*() const

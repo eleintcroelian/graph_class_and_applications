@@ -119,10 +119,15 @@ public:
     Node()
     {
     }
+//--design_1
+//--the operator[] isnt const, so calling it in a const method fails on rice, also what happens if there are no edges for a node? seg fault with at
+//--START
     size_type degree() const
     {
-      return _graph_pointer->_n1_n2_edge[_node_id].size();
+      //return _graph_pointer->_n1_n2_edge[_node_id].size();
+      return _graph_pointer->_n1_n2_edge.at(_node_id).size();
     }
+//--END
     incident_iterator edge_begin()
     {
       incident_iterator newiterator(const_cast<Graph *>(_graph_pointer), _node_id);
@@ -562,16 +567,19 @@ public:
     NodeIterator newiter(const_cast<Graph *>(this), 0);
     return newiter;
   }
+//--functionality_1
+//--node_end should point one past, not at the last node
+//--START
   node_iterator node_end() const
   {
-    NodeIterator enditer(const_cast<Graph *>(this), _Node_Struct_Vector.size() - 1);
+    NodeIterator enditer(const_cast<Graph *>(this), _Node_Struct_Vector.size());
 
     // newiter._id = _Node_Struct_Vector.size();//const_cast<Node *>
     // newiter._node_pointer = &((_Node_Struct_Vector[newiter._id]._Node));
     // std::cout << newiter._id << std::endl;
     return enditer;
   }
-
+//--END
   //
   // Incident Iterator
   //
@@ -620,12 +628,15 @@ public:
       }
       return false;
     }
+//--functionality_1
+//--the edge needs to have the root as node 1 and the adjacent as node 2
+//--START
     Edge operator*() const
     {
       // std::cout << "* called" << std::endl;
       return *_edge_pointer;
     }
-
+//--END
     IncidentIterator &operator++()
     {
       // std::cout << "+ called" << std::endl;
@@ -642,7 +653,11 @@ public:
     {
       _graph_pointer = graph_pointer;
       _node_id = node_id;
+    //--design_0
+    //--what if there are no edges?
+    //--START  
       _map_pointer = &(_graph_pointer->_n1_n2_edge[_node_id]);
+    //--END
       _map_iter = _map_pointer->begin();
       _edge_id = _map_iter->second;
       _edge_pointer = &(_graph_pointer->_Edge_Vector[_edge_id]);
@@ -736,12 +751,15 @@ public:
     EdgeIterator newiter(const_cast<Graph *>(this), 0);
     return newiter;
   }
+//--functionality_0
+//--same for edge_end()
+//--START
   edge_iterator edge_end() const
   {
-    EdgeIterator enditer(const_cast<Graph *>(this), _Edge_Vector.size() - 1);
+    EdgeIterator enditer(const_cast<Graph *>(this), _Edge_Vector.size());
     return enditer;
   }
-
+//--END
 private:
   // Use this space for your Graph class's internals:
   // helper functions, data members, and so forth.

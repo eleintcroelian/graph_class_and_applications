@@ -1,0 +1,120 @@
+FILE:          Graph.hpp
+DESIGN         
+
+COMMENTS:
+-the operator[] isnt const, so calling it in a const method fails on rice, also what happens if there are no edges for a node? seg fault with at
+
+RELEVANT CODE:
+size_type degree() const
+    {
+      //return _graph_pointer->_n1_n2_edge[_node_id].size();
+      return _graph_pointer->_n1_n2_edge.at(_node_id).size();
+    }
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+FILE:          Graph.hpp
+FUNCTIONALITY  
+
+COMMENTS:
+-node_end should point one past, not at the last node
+
+RELEVANT CODE:
+node_iterator node_end() const
+  {
+    NodeIterator enditer(const_cast<Graph *>(this), _Node_Struct_Vector.size());
+
+    // newiter._id = _Node_Struct_Vector.size();//const_cast<Node *>
+    // newiter._node_pointer = &((_Node_Struct_Vector[newiter._id]._Node));
+    // std::cout << newiter._id << std::endl;
+    return enditer;
+  }
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+FILE:          Graph.hpp
+FUNCTIONALITY  
+
+COMMENTS:
+-the edge needs to have the root as node 1 and the adjacent as node 2
+
+RELEVANT CODE:
+Edge operator*() const
+    {
+      // std::cout << "* called" << std::endl;
+      return *_edge_pointer;
+    }
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+FILE:          Graph.hpp
+DESIGN         
+
+COMMENTS:
+-what if there are no edges?
+
+RELEVANT CODE:
+_map_pointer = &(_graph_pointer->_n1_n2_edge[_node_id]);
+
+                  
+
+
+--------------------------
+FILE:          Graph.hpp
+FUNCTIONALITY  
+
+COMMENTS:
+-same for edge_end()
+
+RELEVANT CODE:
+edge_iterator edge_end() const
+  {
+    EdgeIterator enditer(const_cast<Graph *>(this), _Edge_Vector.size());
+    return enditer;
+  }
+
+                  
+
+
+--------------------------
+FILE:          subgraph.cpp
+DESIGN         
+
+COMMENTS:
+-filter must move to first valid element
+
+RELEVANT CODE:
+// Constructor
+  filter_iterator(const Pred &p, const It &first, const It &last)
+      : p_(p), it_(first), end_(last)
+  {
+    // HW1 #4: YOUR CODE HERE
+  }
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+
+GRADING TA                  
+SUNet ID: lwarne, GitHub ID lwarne
+###################################################
+
+FUNCTIONALITY SCORE:                      -
+###################################################
+
+DESIGN SCORE:                             -
+###################################################
+
+STYLE SCORE:                              +
+###################################################
+
+WRITEUP SCORE:                            +
+###################################################
+If you have any problem about grading result, please file an issue in your GitHub repo.
