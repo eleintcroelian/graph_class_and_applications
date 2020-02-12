@@ -19,22 +19,27 @@
 
 #include "Graph.hpp"
 
-
 // Gravity in meters/sec^2
 static constexpr double grav = 9.81;
 
 /** Custom structure of data to store with Nodes */
-struct NodeData {
-  Point vel;       //< Node velocity
-  double mass;     //< Node mass
+struct NodeData
+{
+  Point vel;   //< Node velocity
+  double mass; //< Node mass
   NodeData() : vel(0), mass(1) {}
 };
 
+struct EdgeData
+{
+  double RestLength; //< Node mass
+  EdgeData() : RestLength(0.) {}
+};
+
 // Define the Graph type
-using GraphType = Graph<NodeData>;
+using GraphType = Graph<NodeData,EdgeData>;
 using Node = typename GraphType::node_type;
 using Edge = typename GraphType::edge_type;
-
 
 /** Change a graph's nodes according to a step of the symplectic Euler
  *    method with the given node force.
@@ -51,9 +56,11 @@ using Edge = typename GraphType::edge_type;
  *           Node n at time @a t.
  */
 template <typename G, typename F>
-double symp_euler_step(G& g, double t, double dt, F force) {
+double symp_euler_step(G &g, double t, double dt, F force, double L)
+{
   // Compute the t+dt position
-  for (auto it = g.node_begin(); it != g.node_end(); ++it) {
+  for (auto it = g.node_begin(); it != g.node_end(); ++it)
+  {
     auto n = *it;
 
     // Update the position of the node according to its velocity
@@ -62,38 +69,59 @@ double symp_euler_step(G& g, double t, double dt, F force) {
   }
 
   // Compute the t+dt velocity
-  for (auto it = g.node_begin(); it != g.node_end(); ++it) {
+  for (auto it = g.node_begin(); it != g.node_end(); ++it)
+  {
     auto n = *it;
 
     // v^{n+1} = v^{n} + F(x^{n+1},t) * dt / m
-    n.value().vel += force(n, t) * (dt / n.value().mass);
+    n.value().vel += force(n, t, L) * (dt / n.value().mass);
   }
 
   return t + dt;
 }
 
-
 /** Force function object for HW2 #1. */
-struct Problem1Force {
+struct Problem1Force
+{
   /** Return the force applying to @a n at time @a t.
    *
    * For HW2 #1, this is a combination of mass-spring force and gravity,
    * except that points at (0, 0, 0) and (1, 0, 0) never move. We can
    * model that by returning a zero-valued force. */
   template <typename NODE>
-  Point operator()(NODE n, double t) {
-    // HW2 #1: YOUR CODE HERE
-    (void) n; (void) t; (void) grav;    // silence compiler warnings
-    return Point(0);
+  Point operator()(NODE n, double t, double L)
+  {
+    if (n.position() == Point(0, 0, 0) || n.position() == Point(1, 0, 0))
+    {
+      return Point(0, 0, 0);
+    }
+
+    // std::cout<<"Node: "<< n.index()<< " connected to : ";
+    Point f_spring(0, 0, 0);
+    auto p1 = n.position();
+    for (auto it = n.edge_begin(); it != n.edge_end(); ++it)
+    {
+      auto current_edge = *it;
+      auto n2 = current_edge.node2();
+      // std::cout<< n2.index()<<" ";
+      auto p2 = n2.position();
+      Point direction = (p1-p2)/norm(p2-p1);
+      double current_distance = norm(p2-p1);
+      // double magnitude = -100*direction*()
+      //  std::cout<< magnitude << std::endl;
+      f_spring =f_spring - 100*direction*(current_distance-L);
+    }
+    // std::cout<< std::endl;
+    Point f_gravity(0, 0, -1);
+    return f_spring+(grav * n.value().mass)*f_gravity;
   }
 };
 
-
-
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   // Check arguments
-  if (argc < 3) {
+  if (argc < 3)
+  {
     std::cerr << "Usage: " << argv[0] << " NODES_FILE TETS_FILE\n";
     exit(1);
   }
@@ -112,8 +140,9 @@ int main(int argc, char** argv)
   // Create a tets_file from the second input argument
   std::ifstream tets_file(argv[2]);
   // Interpret each line of the tets_file as four ints which refer to nodes
-  std::array<int,4> t;
-  while (CME212::getline_parsed(tets_file, t)) {
+  std::array<int, 4> t;
+  while (CME212::getline_parsed(tets_file, t))
+  {
     graph.add_edge(nodes[t[0]], nodes[t[1]]);
     graph.add_edge(nodes[t[0]], nodes[t[2]]);
 #if 0
@@ -127,6 +156,13 @@ int main(int argc, char** argv)
 
   // HW2 #1 YOUR CODE HERE
   // Set initial conditions for your nodes, if necessary.
+
+  for (auto it = graph.node_begin(); it != graph.node_end(); ++it)
+  {
+    auto n = *it;
+    n.value().mass =1./graph.num_nodes();
+  }
+
 
   // Print out the stats
   std::cout << graph.num_nodes() << " " << graph.num_edges() << std::endl;
@@ -143,28 +179,28 @@ int main(int argc, char** argv)
   // We want viewer interaction and the simulation at the same time
   // Viewer is thread-safe, so launch the simulation in a child thread
   bool interrupt_sim_thread = false;
-  auto sim_thread = std::thread([&](){
+  auto sim_thread = std::thread([&]() {
+    // Begin the mass-spring simulation
+    double dt = 0.0001;
+    double t_start = 0;
+    double t_end = 5.0;
+    double L = (*graph.edge_begin()).length();
 
-      // Begin the mass-spring simulation
-      double dt = 0.001;
-      double t_start = 0;
-      double t_end = 5.0;
+    for (double t = t_start; t < t_end && !interrupt_sim_thread; t += dt)
+    {
+      //std::cout << "t = " << t << std::endl;
+      symp_euler_step(graph, t, dt, Problem1Force(),L);
 
-      for (double t = t_start; t < t_end && !interrupt_sim_thread; t += dt) {
-        //std::cout << "t = " << t << std::endl;
-        symp_euler_step(graph, t, dt, Problem1Force());
+      // Update viewer with nodes' new positions
+      viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
+      viewer.set_label(t);
 
-        // Update viewer with nodes' new positions
-        viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
-        viewer.set_label(t);
-
-        // These lines slow down the animation for small graphs, like grid0_*.
-        // Feel free to remove them or tweak the constants.
-        if (graph.size() < 100)
-          std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      }
-
-    });  // simulation thread
+      // These lines slow down the animation for small graphs, like grid0_*.
+      // Feel free to remove them or tweak the constants.
+      if (graph.size() < 100)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }); // simulation thread
 
   viewer.event_loop();
 

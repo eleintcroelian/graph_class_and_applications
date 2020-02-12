@@ -18,7 +18,7 @@
 #include "Graph.hpp"
 
 // Define our types
-using GraphType = Graph<double>;
+using GraphType = Graph<double,double>;
 using NodeType = typename GraphType::node_type;
 using NodeIter = typename GraphType::node_iterator;
 

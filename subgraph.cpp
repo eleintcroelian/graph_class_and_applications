@@ -16,7 +16,7 @@
 
 #include "Graph.hpp"
 
-using GraphType = Graph<double>;
+using GraphType = Graph<double,double>;
 using NodeType = typename GraphType::node_type;
 using NodeIter = typename GraphType::node_iterator;
 /** An iterator that skips over elements of another iterator based on whether
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
   }
 
   // Define our types
-  using GraphType = Graph<double>;
+  using GraphType = Graph<double,double>;
   using NodeType = typename GraphType::node_type;
 
   // Construct a Graph

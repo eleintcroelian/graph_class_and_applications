@@ -19,8 +19,6 @@ void sf_print(bool sf, std::string msg = "") {
     ++fail_count;
   }
 }
-
-
 int main()
 {
   using GraphType = Graph<int,int>;
