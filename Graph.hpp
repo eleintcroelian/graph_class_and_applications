@@ -510,9 +510,6 @@ public:
   size_type remove_edge ( const Node &n1, const Node &n2){
 
 
-    if{
-      
-    }
 
   };
   size_type remove_edge ( const Edge &edge)
