@@ -19,7 +19,7 @@
  * Users can add and retrieve nodes and edges. Edges are unique (there is at
  * most one edge between any pair of distinct nodes).
  */
-template <typename V,typename E>
+template <typename V, typename E>
 class Graph
 
 {
@@ -39,8 +39,6 @@ public:
   // using node_value_type = V;
   typedef V node_value_type;
   typedef E edge_value_type;
-
-  
 
   using graph_type = Graph;
 
@@ -82,7 +80,7 @@ public:
   };
   struct EdgeContents
   {
-    V _Value;
+    E _Value;
     edge_type _Edge;
   };
 
@@ -437,27 +435,12 @@ public:
    */
   bool has_edge(const Node &a, const Node &b) const
   {
-    if (a < b)
+    if (_n1_n2_edge.find(a._node_id) != _n1_n2_edge.end())
     {
-      if (_n1_n2_edge.find(a._node_id) != _n1_n2_edge.end())
+      if (_n1_n2_edge.at(a._node_id).find(b._node_id) != _n1_n2_edge.at(a._node_id).end())
       {
-        if (_n1_n2_edge.at(a._node_id).find(b._node_id) != _n1_n2_edge.at(a._node_id).end())
-        {
-          return true;
-        }
+        return true;
       }
-      return false;
-    }
-    if (b < a)
-    {
-      if (_n1_n2_edge.find(b._node_id) != _n1_n2_edge.end())
-      {
-        if (_n1_n2_edge.at(b._node_id).find(a._node_id) != _n1_n2_edge.at(b._node_id).end()) //_____________
-        {
-          return true;
-        }
-      }
-      return false;
     }
     return false;
   }
@@ -485,38 +468,60 @@ public:
         _n1_n2_edge.insert(std::make_pair(a._node_id, std::map<size_type, size_type>()));
         _n1_n2_edge[a._node_id].insert(std::make_pair(b._node_id, newEdge._edge_id));
         EdgeContents newstruct;
-        newstruct._Edge=newEdge;
+        newstruct._Edge = newEdge;
         _Edge_Struct_Vector.push_back(newstruct);
-
 
         if (_n1_n2_edge.find(b._node_id) == _n1_n2_edge.end())
         {
           _n1_n2_edge.insert(std::make_pair(b._node_id, std::map<size_type, size_type>()));
         }
         _n1_n2_edge[b._node_id].insert(std::make_pair(a._node_id, newEdge._edge_id));
+        e2i.push_back(e2i.size());
         return newEdge;
       }
       if (!(a < b))
       {
         edge_type newEdge = Edge(this, _Edge_Struct_Vector.size(), b._node_id, a._node_id);
-        
+
         _n1_n2_edge.insert(std::make_pair(b._node_id, std::map<size_type, size_type>()));
         _n1_n2_edge[b._node_id].insert(std::make_pair(a._node_id, newEdge._edge_id));
         EdgeContents newstruct;
-        newstruct._Edge=newEdge;
+        newstruct._Edge = newEdge;
         _Edge_Struct_Vector.push_back(newstruct);
         if (_n1_n2_edge.find(a._node_id) == _n1_n2_edge.end())
         {
           _n1_n2_edge.insert(std::make_pair(a._node_id, std::map<size_type, size_type>()));
         }
         _n1_n2_edge[a._node_id].insert(std::make_pair(b._node_id, newEdge._edge_id));
+        e2i.push_back(e2i.size());
         return newEdge;
       }
     }
     size_type existingedgeid = _n1_n2_edge[a._node_id][b._node_id]; // If edge already exists
-    return _Edge_Struct_Vector[existingedgeid]._Edge;                            // return it
+    return _Edge_Struct_Vector[existingedgeid]._Edge;               // return it
   }
 
+  size_type remove_node ( const Node &){
+
+  };
+  node_iterator remove_node ( node_iterator n_it ){
+
+  };
+  size_type remove_edge ( const Node &n1, const Node &n2){
+
+
+    if{
+      
+    }
+
+  };
+  size_type remove_edge ( const Edge &edge)
+  {
+    
+  };
+  edge_iterator remove_edge ( edge_iterator e_it ){
+
+  };
   /** Remove all nodes and edges from this graph.
    * @post num_nodes() == 0 && num_edges() == 0
    *
@@ -613,9 +618,6 @@ public:
   {
     NodeIterator enditer(const_cast<Graph *>(this), _Node_Struct_Vector.size());
     enditer._node_pointer = enditer._graph_pointer->_Node_Struct_Vector.end();
-    // newiter._id = _Node_Struct_Vector.size();//const_cast<Node *>
-    // newiter._node_pointer = &((_Node_Struct_Vector[newiter._id]._Node));
-    // std::cout << newiter._id << std::endl;
     return enditer;
   }
 
@@ -669,7 +671,7 @@ public:
     Edge operator*() const
     {
       Edge tempedge(_graph_pointer, _edge_id, _node_id, _map_iter->first);
-      return tempedge; 
+      return tempedge;
     }
 
     IncidentIterator &operator++()
@@ -793,8 +795,8 @@ private:
 
   std::vector<NodeContents> _Node_Struct_Vector;
   std::map<size_type, std::map<size_type, size_type>> _n1_n2_edge;
-  // Nested map with node1_id - [node2_id - edge_id] structure
   std::vector<EdgeContents> _Edge_Struct_Vector;
+  std::vector<size_type> e2i;
 };
 
 #endif // CME212_GRAPH_HPP

@@ -40,7 +40,7 @@ int main(int argc, char **argv)
   }
 
   // Define our types
-  using GraphType = Graph<double>; // CHANGE LATER
+  using GraphType = Graph<double,double>; // CHANGE LATER
   using NodeType = typename GraphType::node_type;
 
   // Construct a Graph
