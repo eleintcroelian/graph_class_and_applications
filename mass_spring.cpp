@@ -71,11 +71,8 @@ double symp_euler_step(G &g, double t, double dt, F force, C constraint)
     // Update the position of the node according to its velocity
     // x^{n+1} = x^{n} + v^{n} * dt
     n.position() += n.value().vel * dt;
-
-    
   }
   constraint(&g, t);
-
   // Compute the t+dt velocity
   for (auto it = g.node_begin(); it != g.node_end(); ++it)
   {
@@ -234,11 +231,10 @@ public:
   {
     (void)t;
     (void)graph;
-    node_1.position()=Point(0,0,0);
-    node_2.position()=Point(1,0,0);
-    node_1.value().vel=Point(0,0,0);
-    node_2.value().vel=Point(0,0,0);
-
+    node_1.position() = Point(0, 0, 0);
+    node_2.position() = Point(1, 0, 0);
+    node_1.value().vel = Point(0, 0, 0);
+    node_2.value().vel = Point(0, 0, 0);
   }
   Node node_1;
   Node node_2;
@@ -280,11 +276,33 @@ public:
     }
   }
 };
+class RemoveConstraint : public ZeroConstraint
+{
+public:
+  void operator()(GraphType *graph, double t)
+  {
+    (void)t;
+    std::vector<Node> eraselist;
+    for (auto it = (*graph).node_begin(); it != (*graph).node_end(); ++it)
+    {
+      auto n = *it;
+      if (norm(n.position() - Point(0.5, 0.5, -0.5)) < 0.15)
+      {
+        eraselist.push_back(n);
+      }
+    }
+    for (auto el : eraselist)
+    {
+      auto extnode = graph->find_external(el);
+      graph->remove_node(extnode);
+    }
+  }
+};
 struct CombinedConstraints
 {
   CombinedConstraints(std::vector<ZeroConstraint *> inputconstraints) : inputconstraints_(inputconstraints){};
 
-  void operator()(GraphType* g, double t)
+  void operator()(GraphType *g, double t)
   {
     (void)t;
     for (auto it = inputconstraints_.begin(); it != inputconstraints_.end(); it++)
@@ -375,17 +393,19 @@ int main(int argc, char **argv)
       PinConstraint p_c(&graph);
       SphereConstraint s_c;
       PlaneConstraint pl_c;
+      RemoveConstraint r_c;
       constraint_vector.push_back(&p_c);
-      constraint_vector.push_back(&s_c);
-      constraint_vector.push_back(&pl_c);
+      // constraint_vector.push_back(&s_c);
+      constraint_vector.push_back(&r_c);
 
       symp_euler_step(graph, t, dt, make_combined_force(GravityForce(), MassSpringForce()),
                       CombinedConstraints(constraint_vector));
-
-      // Update viewer with nodes' new positions
+      viewer.clear();
+      node_map.clear();
       viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
+      viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
+      // Update viewer with nodes' new positions
       viewer.set_label(t);
-
       // These lines slow down the animation for small graphs, like grid0_*.
       // Feel free to remove them or tweak the constants.
       if (graph.size() < 100)

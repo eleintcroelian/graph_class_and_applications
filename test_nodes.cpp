@@ -58,12 +58,13 @@ int main()
   sf_print(g.node(0).value() == 0, "Node value set (0)");
   sf_print(g.node(53).value() == 53, "Node value set (53)");
   sf_print(g.node(99).value() == 99, "Node value set (99)");
-
+  std::cout<<g.num_nodes()<<std::endl;
   // Remove 50 Nodes...
   for (unsigned k = 0; k < 50; ++k) {
     unsigned n = unsigned(CME212::random(0, g.num_nodes()));
     g.remove_node(g.node(n));
   }
+  std::cout<<g.num_nodes()<<std::endl;
 
   sf_print(g.num_nodes() == 50, "Removed 50 nodes");
 

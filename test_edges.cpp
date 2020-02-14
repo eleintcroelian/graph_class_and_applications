@@ -2,26 +2,28 @@
 
 #include "Graph.hpp"
 
-
 static unsigned fail_count = 0;
 
 template <typename T>
-void sf_print(T a, std::string msg = "") {
-  (void) a;
+void sf_print(T a, std::string msg = "")
+{
+  (void)a;
   std::cerr << msg << " [Success]" << std::endl;
 }
 
-void sf_print(bool sf, std::string msg = "") {
+void sf_print(bool sf, std::string msg = "")
+{
   if (sf)
     std::cerr << msg << " [Success]" << std::endl;
-  else {
+  else
+  {
     std::cerr << msg << " [FAIL]" << std::endl;
     ++fail_count;
   }
 }
 int main()
 {
-  using GraphType = Graph<int,int>;
+  using GraphType = Graph<int, int>;
   using Node = GraphType::node_type;
   using Edge = GraphType::edge_type;
 
@@ -48,7 +50,7 @@ int main()
   sf_print(g.has_edge(e.node2(), e.node1()), "Graph has_edge e transpose");
 
   sf_print((e.node1() == g.node(0) && e.node2() == g.node(1)) ||
-           (e.node1() == g.node(1) && e.node2() == g.node(0)),
+               (e.node1() == g.node(1) && e.node2() == g.node(0)),
            "Edge nodes check out");
 
   sf_print(g.remove_edge(e.node1(), e.node2()),
@@ -65,7 +67,6 @@ int main()
 
   sf_print(g.num_edges() == 1, "Graph has 1 Edge");
 
-
   sf_print((g.remove_node(g.node(1)), true), "Removing Node ...");
   sf_print(g.num_nodes() == 1, "Graph has 1 node");
   sf_print(g.num_edges() == 0, "Edge removed b/c of Node");
@@ -75,24 +76,28 @@ int main()
   sf_print(g.num_nodes() == 0 && g.num_edges() == 0);
 
   std::cerr << "Adding 100 Nodes...";
-  for (int k = 0; k < 100; ++k) {
+  for (int k = 0; k < 100; ++k)
+  {
     g.add_node(Point(CME212::random(), CME212::random(), CME212::random()));
   }
   sf_print(true);
 
   // Adding 100 Edges
-  for (unsigned k = 0; k < 100; ++k) {
+  for (unsigned k = 0; k < 100; ++k)
+  {
     unsigned n1, n2;
-    do {
-      n1 = (unsigned) CME212::random(0, g.num_nodes());
-      n2 = (unsigned) CME212::random(0, g.num_nodes());
+    do
+    {
+      n1 = (unsigned)CME212::random(0, g.num_nodes());
+      n2 = (unsigned)CME212::random(0, g.num_nodes());
     } while (n1 == n2 || g.has_edge(g.node(n1), g.node(n2)));
 
     Edge e = g.add_edge(g.node(n1), g.node(n2));
-    if (k == 43) {
+    if (k == 43)
+    {
       sf_print(g.has_edge(e.node1(), e.node2()), "Graph has_edge e");
       sf_print((e.node1() == g.node(n1) && e.node2() == g.node(n2)) ||
-               (e.node1() == g.node(n2) && e.node2() == g.node(n1)),
+                   (e.node1() == g.node(n2) && e.node2() == g.node(n1)),
                "Edge nodes check out");
     }
   }
@@ -100,11 +105,13 @@ int main()
   sf_print(g.num_nodes() == 100 && g.num_edges() == 100, "100 Nodes, 100 Edges");
 
   // Remove 50 Edges
-  for (unsigned k = 0; k < 50; ++k) {
+  for (unsigned k = 0; k < 50; ++k)
+  {
     unsigned n1, n2;
-    do {
-      n1 = (unsigned) CME212::random(0, g.num_nodes());
-      n2 = (unsigned) CME212::random(0, g.num_nodes());
+    do
+    {
+      n1 = (unsigned)CME212::random(0, g.num_nodes());
+      n2 = (unsigned)CME212::random(0, g.num_nodes());
     } while (!g.has_edge(g.node(n1), g.node(n2)));
 
     g.remove_edge(g.node(n1), g.node(n2));
@@ -117,8 +124,10 @@ int main()
 
   // Count edges the long way
   unsigned count_edges = 0;
-  for (unsigned k = 0; k < g.num_nodes(); ++k) {
-    for (unsigned j = k+1; j < g.num_nodes(); ++j) {
+  for (unsigned k = 0; k < g.num_nodes(); ++k)
+  {
+    for (unsigned j = k + 1; j < g.num_nodes(); ++j)
+    {
       if (g.has_edge(g.node(k), g.node(j)))
         ++count_edges;
     }
@@ -127,20 +136,25 @@ int main()
   sf_print(count_edges == g.num_edges(), "Edge count agrees");
 
   // Remove 50 Nodes...
-  for (unsigned k = 0; k < 50; ++k) {
-    unsigned n = (unsigned) CME212::random(0, g.num_nodes());
+  for (unsigned k = 0; k < 50; ++k)
+  {
+    unsigned n = (unsigned)CME212::random(0, g.num_nodes());
     g.remove_node(g.node(n));
   }
   sf_print(g.num_nodes() == 50, "Removed 50 Nodes");
 
   // Count edges the long way
   count_edges = 0;
-  for (unsigned k = 0; k < g.num_nodes(); ++k) {
-    for (unsigned j = k+1; j < g.num_nodes(); ++j) {
+  for (unsigned k = 0; k < g.num_nodes(); ++k)
+  {
+    for (unsigned j = k + 1; j < g.num_nodes(); ++j)
+    {
       if (g.has_edge(g.node(k), g.node(j)))
         ++count_edges;
     }
   }
+  std::cout << g.num_edges() << std::endl;
+  std::cout << count_edges << std::endl;
 
   sf_print(count_edges == g.num_edges(), "Edge count agrees");
 
@@ -150,7 +164,8 @@ int main()
 
   GraphType g2;
   std::cerr << "Adding 10 Nodes to Graph1 and Graph2...";
-  for (unsigned k = 0; k < 10; ++k) {
+  for (unsigned k = 0; k < 10; ++k)
+  {
     Point p(CME212::random(), CME212::random(), CME212::random());
     g.add_node(p);
     g2.add_node(p);
@@ -164,10 +179,13 @@ int main()
   sf_print(e1 != e2, "G1-G2 Edge comparison !=");
   sf_print(e1 < e2 || e2 < e1, "G1-G2 Edge comparison < >");
 
-  if (fail_count) {
-    std::cerr << "\n" << fail_count
-	      << (fail_count > 1 ? " FAILURES" : " FAILURE") << std::endl;
+  if (fail_count)
+  {
+    std::cerr << "\n"
+              << fail_count
+              << (fail_count > 1 ? " FAILURES" : " FAILURE") << std::endl;
     return 1;
-  } else
+  }
+  else
     return 0;
 }
