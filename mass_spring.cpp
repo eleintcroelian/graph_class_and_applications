@@ -396,14 +396,14 @@ int main(int argc, char **argv)
       RemoveConstraint r_c;
       constraint_vector.push_back(&p_c);
       // constraint_vector.push_back(&s_c);
-      constraint_vector.push_back(&r_c);
+      constraint_vector.push_back(&pl_c);
 
       symp_euler_step(graph, t, dt, make_combined_force(GravityForce(), MassSpringForce()),
                       CombinedConstraints(constraint_vector));
-      viewer.clear();
-      node_map.clear();
-      viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
-      viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
+      // viewer.clear();
+      // node_map.clear();
+      // viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
+      // viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
       // Update viewer with nodes' new positions
       viewer.set_label(t);
       // These lines slow down the animation for small graphs, like grid0_*.
@@ -414,7 +414,6 @@ int main(int argc, char **argv)
   }); // simulation thread
 
   viewer.event_loop();
-
   // If we return from the event loop, we've killed the window.
   interrupt_sim_thread = true;
   sim_thread.join();

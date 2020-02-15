@@ -514,7 +514,18 @@ public:
     size_type existingedgeid = _n1_n2_edge[a._node_id][b._node_id]; // If edge already exists
     return _Edge_Struct_Vector[existingedgeid]._Edge;               // return it
   }
-
+/** Remove a Node from the graph, and return the number of node removed (0 or 1).
+   * @pre @a n is currently inside the graph
+   * @return 1 if node removed, 0 if not.
+   * @post has_node(@a n) == true
+   * @post num.nodes()-= return value
+   *       
+   *
+   * Order of node content data is changed. Removes all edges connected to the node.
+   * 
+   *
+   * Complexity: O(num_nodes() + num_edges())
+   */
   size_type remove_node(const Node &n)
   {
     Node InternalVersion(this, e2i_node[n.index()]);
@@ -552,12 +563,35 @@ public:
     }
     return 0;
   };
+  /** Remove a Node from the graph, and return the iterator to the node.
+   * @pre @a n is currently inside the graph
+   * @return an iterator to n.
+   * @post has_node(@a n) == true
+   * @post num.nodes()-= return value
+   *       
+   *
+   * Order of node content data is changed. Removes all edges connected to the node.
+   * 
+   *
+   * Complexity: O(num_nodes() + num_edges())
+   */
   node_iterator remove_node(node_iterator n_it)
   {
     auto a = remove_node(*n_it);
     return n_it;
   };
-
+  /** Remove an Edge from the graph, and return the number of edge removed (0 or 1).
+   * @pre edge is currently inside the graph
+   * @return 1 if node removed, 0 if not.
+   * @post has_edge(@a n1 , @a n2) == true
+   * @post num.edges()-= return value
+   *       
+   *
+   * Order of edge content data is changed.
+   * 
+   *
+   * Complexity: O(1)
+   */
   size_type remove_edge(const Node &n1, const Node &n2)
   {
     Node intnode1(this, e2i_node[n1.index()]);
@@ -576,11 +610,34 @@ public:
     }
     return 0;
   };
+   /** Remove an Edge from the graph, and return the number of edge removed (0 or 1).
+   * @pre edge is currently inside the graph
+   * @return 1 if node removed, 0 if not.
+   * @post has_edge(@a n1 , @a n2) == true
+   * @post num.edges()-= return value
+   *       
+   *
+   * Order of edge content data is changed.
+   * 
+   *
+   * Complexity: O(1)
+   */
   size_type remove_edge(const Edge &edge)
   {
     return remove_edge(edge.node1(), edge.node2());
   };
-
+ /** Remove an Edge from the graph, and return an iterator to the edge removed.
+   * @pre edge is currently inside the graph
+   * @return 1 if node removed, 0 if not.
+   * @post has_edge(@a n1 , @a n2) == true
+   * @post num.edges()-= return value
+   *       
+   *
+   * Order of edge content data is changed.
+   * 
+   *
+   * Complexity: O(1)
+   */
   edge_iterator remove_edge(edge_iterator e_it)
   {
     remove_edge(*e_it);
@@ -600,11 +657,11 @@ public:
     e2i.clear();
     e2i_node.clear();
   }
-  node_type find_external(const node_type& a)
+  node_type find_external(const node_type &a)
   {
-  auto external_node_id = find(e2i_node.begin(), e2i_node.end(), a.index()) - e2i_node.begin();
-  Node returnnode(this,external_node_id);
-  return returnnode;
+    auto external_node_id = find(e2i_node.begin(), e2i_node.end(), a.index()) - e2i_node.begin();
+    Node returnnode(this, external_node_id);
+    return returnnode;
   }
   //
   // Node Iterator
@@ -632,7 +689,7 @@ public:
     // Supply definitions AND SPECIFICATIONS for:
     Node operator*() const
     {
-      // std::cout<<(*_node_pointer).index()<<std::endl;
+      // Node returnnode(_graph_pointer,*_node_pointer);
       return _graph_pointer->_Node_Struct_Vector[(*_node_pointer)]._Node;
       // return returnnode;
     }
