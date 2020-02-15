@@ -1,0 +1,179 @@
+\documentclass[12pt,letterpaper,twoside]{article}
+
+\newif\ifsolution\solutiontrue   % Include the solutions
+%\newif\ifsolution\solutionfalse  % Exclude the solutions
+
+\usepackage{cme212}
+
+\newcommand{\T}[1]{\text{\texttt{#1}}}
+\newcommand{\V}[1]{\text{\textit{#1}}}
+
+\begin{document}
+
+{\centering \textbf{Paper Exercise 3\\ Due Tuesday, February 25th at 4:30 P.M. P.S.T. \\}}
+\vspace*{-8pt}\noindent\rule{\linewidth}{1pt}
+
+\paragraph{Question 0: Lecture 5} Our graph is undirected, but we could use it to build a
+\href{https://en.wikipedia.org/wiki/Directed_graph#Definition}{\emph{directed} graph} or \emph{digraph}. A digraph's edges are \emph{ordered}
+pairs of nodes $(n_i, n_j)$, rather than unordered pairs $\{n_i, n_j\}$; all
+operations look like their undirected counterparts and have similar complexity.
+
+Here's one digraph representation using our graph class.
+\begin{cpp}
+template <typename V> 
+class Digraph { 
+  ... 
+ private:
+  Graph<V> g_;
+};
+\end{cpp}
+Explain the representation by giving an abstraction function and
+representation invariant. Note that \texttt{Digraph} is not
+\texttt{Graph}'s friend and can only use \texttt{Graph}'s public
+interface. \\
+
+\textbf{Note:} To be concrete, we are asking: How can you use an undirected
+graph to construct (or represent) a directed graph? This alludes to
+the representation. Are there ``any
+assumptions'' used during your construction? If so, these may be
+necessary invariants.\\
+
+\textbf{Note: } The representational invariants and the abstraction functions should not refer to the way you implemented your graph class but only to the abstract concept of an undirected graph.
+
+\begin{solution}
+
+\end{solution}
+
+\paragraph{Question 1: Lecture 5} The \href{https://en.cppreference.com/w/cpp/container/vector/resize}{\texttt{vector<T>::resize}} operation extends a vector with
+\emph{memory initialized} elements. (For example, after \texttt{vector<int> v;
+  v.resize(20)}, \texttt{v} contains 20 zeroes in memory.) This is almost always what we
+want, but it can be useful to extend a vector with \emph{uninitialized
+  memory} so that we do not take up unnecessary space. Here's an example: uninitialized memory helps build a \emph{sparse
+  vector}, in which elements are initialized only when first referenced. We
+assume a special \texttt{garbage\_vector} type whose \texttt{resize} method does
+not initialize new memory. \textbf{See next page}\\ \textbf{Note:} This question will
+not completely make sense until you understand what the code is doing below!
+
+\newpage
+\begin{cpp}
+template <typename T> 
+class sparse_vector {
+  garbage_vector<size_t> position_;
+  vector<size_t> check_;
+  vector<T> value_;
+ public:
+  // Construct a sparse vector with all elements equal to T().
+  sparse_vector() {}
+  // Return a reference to the element at position @a i.
+  T& operator[](size_t i) {
+    // If out of bounds, we must re-size our array and add (uninitialized) memory!
+    if (i >= position_.size())
+      position_.resize(i + 1);
+    // If we haven't initialized the memory yet, go ahead and do so now.
+    if (position_[i] >= check_.size() || check_[position_[i]] != i) {
+      position_[i] = check_.size(); // First reference to the element at position i.
+      check_.push_back(i);          // We associate an index...
+      value_.push_back(T());        // ...alongside a value.
+    }
+    return value_[position_[i]];
+  }
+};
+\end{cpp}
+
+An abstract \texttt{sparse\_vector} value is an \textbf{infinite} vector.
+
+Write an abstraction function and representation invariant for
+\texttt{sparse\_vector}.
+
+\begin{solution}
+ 
+\end{solution}
+
+
+
+\paragraph{Question 2: Lecture 12} The \texttt{CME212/BoundingBox.hpp} is kind of interesting. The following code will create a bounding box that encloses our entire graph:
+\begin{cpp}
+template <typename V, typename E>
+Box3D graph_bounding_box(const Graph<V,E>& g) {
+  auto first = graph.node_begin();
+  auto last  = graph.node_end();
+  assert(first != last);
+  Box3D box = Box3D((*first).position());
+  for (++first; first != last; ++first)
+    box |= (*first).position();
+  return box;
+}
+\end{cpp}
+\textbf{This will be very important for homework 4.}
+Interestingly, \texttt{Box3D} also provides a constructor that takes a range of \texttt{Point}s and performs the above operation for us. So, instead, we could write
+\begin{cpp}
+template <typename V, typename E>
+Box3D graph_bounding_box(const Graph<V,E>& g) {
+  return Box3D(g.node_begin(), g.node_end());
+}
+\end{cpp}
+except that this doesn't work because we're passing it \texttt{Node} iterators instead of \texttt{Point} iterators.
+The Boost and Thrust libraries both provide ``fancy iterators'', one of which is the \texttt{transform\_iterator}. See
+\href{https://github.com/thrust/thrust/tree/master/thrust/iterator}{https://github.com/thrust/thrust/tree/master/thrust/iterator}
+for documentation.
+
+Use 
+\href{https://github.com/thrust/thrust/blob/master/thrust/iterator/transform_iterator.h}{\texttt{thrust::transform\_iterator}} 
+to correct the above code that uses \texttt{Box3D}'s range constructor.
+
+\begin{solution}
+
+\end{solution}
+
+\paragraph{Question 3: Lecture 12} In fact, it is possible to implement your \texttt{Graph::node\_iterator} as a \texttt{thrust::transform\_iterator}. That is, we could delete \texttt{NodeIterator} entirely and write
+\begin{verbatim}
+using node_iterator = thrust::transform_iterator<__, __, Node>;
+\end{verbatim}
+The third parameter simply explicitly states that the \texttt{value\_type} should be \texttt{Node}. Fill in the two blanks and explain your answer.
+
+\begin{solution}
+
+\end{solution}
+
+\paragraph{Question 4: Lecture 10} 
+
+We may want to have multiple initialization methods for a class that basically do the same thing but have slightly different interfaces. It would be inefficient to duplicate the code in both constructors. Therefore since C++11 you can use \href{https://en.cppreference.com/w/cpp/language/initializer_list#Delegating_constructor}{delegate constructors}, where one constructor calls another.
+
+Imagine we want to write a class to contain the scores of a test or assignment. The class will be constructed from a vector containing the scores. However depending on the assignment this might be a vector of letter grades or a vector of percentages. Instead of having to write two entire constructors we want to have one constructor delegate to another.
+
+\textbf{(a)} Write a functor that takes in a letter grade from the list [A,B,C,D,E,F] and returns an int with the equivalent percentage of that grade.
+
+\begin{solution}
+
+\end{solution}
+
+\textbf{(b)} We want to delegate to the constructor that takes in the start and end of a vector of percentages with the following interface.
+\begin{cpp}
+using intIter = std::vector<int>::iterator
+using charIter = std::vector<char>::iterator
+class Grades
+{
+	public:
+	Grades(intIter start, intIter end){
+		// normal construction - pretend this is already implemented
+	}
+}
+\end{cpp}
+
+Write a delegating constructor that takes in a \texttt{std::vector<char>} and your functor and delegates to the constructor above.
+
+\begin{solution}
+
+\end{solution}
+
+
+\textbf{(c)} You could also get rid of duplicate code with an \texttt{init()} method that is called by multiple constructors. What is a potential issue with this implementation? 
+
+\begin{solution}
+
+\end{solution}
+\end{document}
+
+
+
+
