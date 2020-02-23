@@ -191,7 +191,11 @@ struct CombinedForces
   std::vector<ZeroForce *> inputforces_;
 };
 
+//--design_1
+//--this should take refernces, otherwise the pointers are to copies that go out of scope
+//--START
 CombinedForces make_combined_force(GravityForce gf, MassSpringForce mf)
+//--END
 {
   std::vector<ZeroForce *> vec;
   vec.push_back(&gf);

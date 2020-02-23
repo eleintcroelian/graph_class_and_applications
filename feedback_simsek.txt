@@ -1,0 +1,93 @@
+FILE:          mass_spring.cpp
+DESIGN         
+
+COMMENTS:
+-this should take refernces, otherwise the pointers are to copies that go out of scope
+
+RELEVANT CODE:
+CombinedForces make_combined_force(GravityForce gf, MassSpringForce mf)
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+FILE:          Graph.hpp
+DESIGN         
+
+COMMENTS:
+-set the value to the default initilization of type E, similar for NodeContents
+
+RELEVANT CODE:
+struct EdgeContents
+  {
+    E _Value;
+    edge_type _Edge;
+  };
+
+                  
+
+
+--------------------------
+FILE:          Graph.hpp
+FUNCTIONALITY  
+
+COMMENTS:
+-this access through the node doesnt go through the e2i vector. A new node issued for a removed index will come back to the inernal node of the removed node. no points off because value does it.
+
+RELEVANT CODE:
+const Point &position() const
+    {
+      return _graph_pointer->_Node_Struct_Vector[_node_id]._Point;
+    }
+
+                  
+
+
+--------------------------
+FILE:          Graph.hpp
+FUNCTIONALITY  
+
+COMMENTS:
+-direct pointer comparison undefined behavior (also fails test  only one of e0 < e1 or e1 < e0 is true)
+
+RELEVANT CODE:
+bool operator<(const Edge &e) const
+
+                  
+
+
+--------------------------
+FILE:          Graph.hpp
+DESIGN         
+
+COMMENTS:
+-you're node iterator has a iterator for a vector (which is being modified), return a new node iterator instead
+
+RELEVANT CODE:
+node_iterator remove_node(node_iterator n_it)
+  {
+    auto a = remove_node(*n_it);
+    return n_it;
+  };
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+
+GRADING TA                  
+SUNet ID: lwarne, GitHub ID lwarne
+###################################################
+
+FUNCTIONALITY SCORE:                      +
+###################################################
+
+DESIGN SCORE:                             -
+###################################################
+
+STYLE SCORE:                              +
+###################################################
+
+WRITEUP SCORE:                            +
+###################################################
+If you have any problem about grading result, please file an issue in your GitHub repo.

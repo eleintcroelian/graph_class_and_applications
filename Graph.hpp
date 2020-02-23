@@ -83,12 +83,15 @@ public:
     V _Value;
     node_type _Node;
   };
+//--design_0
+//--set the value to the default initilization of type E, similar for NodeContents
+//--START
   struct EdgeContents
   {
     E _Value;
     edge_type _Edge;
   };
-
+//--END
   //
   // CONSTRUCTORS AND DESTRUCTOR
   //
@@ -159,11 +162,14 @@ public:
       return newiteratorend;
     }
     /** Return this node's position. */
+//--functionality_0
+//--this access through the node doesnt go through the e2i vector. A new node issued for a removed index will come back to the inernal node of the removed node. no points off because value does it. 
+//--START
     const Point &position() const
     {
       return _graph_pointer->_Node_Struct_Vector[_node_id]._Point;
     }
-
+//--END
     /** Return this node's index, a number in the range [0, graph_size). */
     size_type index() const
     {
@@ -388,7 +394,11 @@ public:
      * This ordering function is useful for STL containers such as
      * std::map<>. It need not have any interpretive meaning.
      */
+//--functionality_0
+//--direct pointer comparison undefined behavior (also fails test  only one of e0 < e1 or e1 < e0 is true)
+//--START
     bool operator<(const Edge &e) const
+//--END
     {
       if (_edge_graph_pointer < e._edge_graph_pointer)
       {
@@ -575,11 +585,15 @@ public:
    *
    * Complexity: O(num_nodes() + num_edges())
    */
+//--design_1
+//--you're node iterator has a iterator for a vector (which is being modified), return a new node iterator instead
+//--START
   node_iterator remove_node(node_iterator n_it)
   {
     auto a = remove_node(*n_it);
     return n_it;
   };
+//--END
   /** Remove an Edge from the graph, and return the number of edge removed (0 or 1).
    * @pre edge is currently inside the graph
    * @return 1 if node removed, 0 if not.
