@@ -1,0 +1,101 @@
+\documentclass[12pt,letterpaper,twoside]{article}
+
+\newif\ifsolution\solutiontrue   % Include the solutions
+%\newif\ifsolution\solutionfalse  % Exclude the solutions
+
+\usepackage{cme212}
+
+\newcommand{\T}[1]{\text{\texttt{#1}}}
+\newcommand{\V}[1]{\text{\textit{#1}}}
+
+\begin{document}
+
+{\centering \textbf{Paper Exercise 4\\ Due Tuesday, March 10th at 4:30
+    P.M. P.S.T. \\}}
+\vspace*{-8pt}\noindent\rule{\linewidth}{1pt}
+
+\paragraph{Question 0: Lecture 10}
+
+Before move semantics were added in C++11 there were a lot of issues around using pointers. One way to solve this was to use RAII and wrap every pointer in a class to ensure that it would be properly cleaned up when the pointer went out of scope and prevent memory leaks. The code below implements one of these \textbf{smart pointers}.
+
+\begin{cpp}
+template<class T>
+class WrapPtr {
+	T* ptr_;
+
+	public:
+	//Assign the T pointer to the member object.
+	WrapPtr(T* ptr):ptr_(ptr)	{
+
+	}
+	// Call the destructor and clean up the pointer resource.
+	~WrapPtr() {
+		delete ptr_;
+	}
+
+	// Define the regular pointer operations.
+	T& operator*() const { return *ptr_; }
+	T* operator->() const { return ptr_; }
+};	
+\end{cpp}
+
+However, this class comes with certain difficulties. What goes wrong in the following code snippets?
+
+\textbf{a}
+\begin{cpp}
+void add_one(WrapPtr<int> obj) {
+  *obj += 1;
+}
+
+int main() {
+  // Create an int on the heap and wrap it in a smart pointer.
+  WrapPtr<int> A(new int {212});
+  add_one(A);
+  std::cout << *A << std::endl;
+  return 0;
+}
+\end{cpp}
+
+\begin{solution}
+
+\end{solution}
+
+
+
+\textbf{b}
+\begin{cpp}
+WrapPtr<std::string> create_message(bool greet)
+{
+  if (greet) {
+    WrapPtr<std::string> greeting {new std::string {"hello"}};
+    return greeting;
+  } else {
+    WrapPtr<std::string> greeting {new std::string {"goodbye"}};
+    return greeting;
+  }
+}
+
+int main()
+{
+  // Use a function to create a message
+  WrapPtr<std::string> message = create_message(true);
+  std::cout << *message << std::endl;
+  return 0;
+}
+\end{cpp}
+
+\begin{solution}
+
+\end{solution}
+
+\paragraph{Question 1: Lecture 10}
+
+Move semantics have resolved the issues in Question 0(b). A move constructor or assignment allows you to transfer resources instead of having to copy them. This prevents two pointers from pointing to the same resource, so we can actually move \texttt{WrapPtr}s between functions without always passing references.
+
+Improve the \texttt{WrapPtr} class so it uses move semantics.
+
+\begin{solution}
+
+\end{solution}
+
+\end{document}
