@@ -67,11 +67,11 @@ int main() {
 WrapPtr<std::string> create_message(bool greet)
 {
   if (greet) {
-    WrapPtr<std::string> greeting {new std::string {"hello"}};
-    return greeting;
+    WrapPtr<std::string> message {new std::string {"hello"}};
+    return message;
   } else {
-    WrapPtr<std::string> greeting {new std::string {"goodbye"}};
-    return greeting;
+    WrapPtr<std::string> message {new std::string {"goodbye"}};
+    return message;
   }
 }
 
