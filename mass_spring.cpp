@@ -155,6 +155,7 @@ class MassSpringForce : public ZeroForce
     {
       auto current_edge = *it;
       auto n2 = current_edge.node2();
+      // std::cout<<n2.index()<<std::endl;
       auto p2 = n2.position();
       Point direction = (p1 - p2) / norm(p2 - p1);
       double current_distance = norm(p2 - p1);
@@ -293,8 +294,9 @@ public:
     }
     for (auto el : eraselist)
     {
-      auto extnode = graph->find_external(el);
-      graph->remove_node(extnode);
+      // auto extnode = graph->find_external(el);
+      // graph->remove_node(extnode);
+      graph->remove_node(el);
     }
   }
 };
@@ -396,14 +398,14 @@ int main(int argc, char **argv)
       RemoveConstraint r_c;
       constraint_vector.push_back(&p_c);
       // constraint_vector.push_back(&s_c);
-      constraint_vector.push_back(&pl_c);
+      constraint_vector.push_back(&r_c);
 
       symp_euler_step(graph, t, dt, make_combined_force(GravityForce(), MassSpringForce()),
                       CombinedConstraints(constraint_vector));
-      // viewer.clear();
-      // node_map.clear();
-      // viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
-      // viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
+      viewer.clear();
+      node_map.clear();
+      viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
+      viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
       // Update viewer with nodes' new positions
       viewer.set_label(t);
       // These lines slow down the animation for small graphs, like grid0_*.

@@ -86,6 +86,14 @@ class BoundingBox
     return true;
   }
 
+  bool intersects(const point_type& p) const {
+    for (unsigned i = 0; i != min_.size(); ++i)
+      if (p[i] == min_[i] || p[i] == max_[i])
+        return true;
+    return false;
+  }
+
+
   /** Test if @a b is entirely within this bounding box.
    * @returns true if all @a p with @a b.contains(@a p) implies contains(@a p) */
   bool contains(const BoundingBox& b) const {

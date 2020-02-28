@@ -33,7 +33,7 @@ DEPSFLAGS = -MD -MF $(DEPSFILE) #-MP
 
 # Define any directories containing header files
 #   To include directories use -Ipath/to/files
-INCLUDES += -I.
+INCLUDES += -I. -I/Users/mc/Dropbox/CME212/cme212-eleintcroelian/MTL-4.0.9555-Linux/usr/include -I/usr/local/boost-1.72.0/include
 
 # Define cxx compile flags
 CXXFLAGS  := -std=c++11 -O3 -W -Wall -Wextra -Wno-deprecated-declarations #-Wfatal-errors
