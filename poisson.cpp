@@ -81,39 +81,32 @@ public:
     double Aij;
     for (size_t i = 0; i < g_->num_nodes(); i++) //row
     {
-      unsigned int temp = 0;
+      double temp = 0;
       for (size_t j = 0; j < g_->num_nodes(); j++) //column
       {
-        if (i == j)
+        if ((i == j) && is_boundary(g_->node(i)))
         {
-          Lij = -(double)g_->node(i).degree();
+          Aij = 1.;
+          temp += Aij * v[j];
+          continue;
         }
-        else if (g_->has_edge(g_->node(i), g_->node(j)))
-        {
-          Lij = 1;
-        }
-        else
-        {
-          Lij = 0;
-        }
-        {if ((i == j) && (is_boundary(g_->node(i))))
-        {
-          Aij = 1;
-        }
-        if ((i != j) && (is_boundary(g_->node(i)) || is_boundary(g_->node(j))))
-        {
-          Aij = 0;
-        }
-        else
-        {
-          Aij = Lij;
-        }}
-        if (Aij == 0)
+        else if ((i != j) && (is_boundary(g_->node(i)) || is_boundary(g_->node(j))))
         {
           continue;
         }
-        temp += Aij * v[j];
-        // A_row.push_back(Aij);
+        if (i == j)
+        {
+          Aij = -g_->node(i).degree();
+          temp += Aij * v[j];
+          continue;
+        }
+        if (g_->has_edge(g_->node(i), g_->node(j)))
+        {
+          Aij = 1.;
+          temp += Aij * v[j];
+          continue;
+        }
+        continue;
       }
       // temp = std::inner_product(A_row.begin(), A_row.end(), v.begin(), 0);
       Assign::apply(w[i], temp);
@@ -158,8 +151,6 @@ struct Collection<GraphSymmetricMatrix>
 };
 } // namespace mtl
 
-
-
 /** Remove all the nodes in graph @a g whose position is within Box3D @a bb.
  * @param[in,out] g  The Graph to remove nodes from
  * @param[in]    bb  The BoundingBox, all nodes inside this box will be removed
@@ -178,7 +169,7 @@ void remove_box(GraphType &g, const Box3D &bb)
       eraselist.push_back(*it);
     };
   };
-  for(auto it = eraselist.begin(); it != eraselist.end(); ++it)
+  for (auto it = eraselist.begin(); it != eraselist.end(); ++it)
   {
     g.remove_node(*it);
   }
@@ -205,8 +196,6 @@ void boundary_tag(GraphType *g, std::vector<unsigned int> &boundary)
     }
   };
 };
-
-
 
 int main(int argc, char **argv)
 {
@@ -269,7 +258,7 @@ int main(int argc, char **argv)
   {
     auto i = (*it).index();
     auto xi = (*it).position();
-    if (boundary.end() != find(boundary.begin(), boundary.end(), i))
+    if (is_boundary(*it))
     {
       b[i] = G(xi);
     }
@@ -286,8 +275,8 @@ int main(int argc, char **argv)
   };
   GraphSymmetricMatrix A(graph, boundary);
   itl::pc::identity<GraphSymmetricMatrix> P(A);
-  x = 1.;
-  // std::cout << "b is " << b << std::endl;
+  x = 0.;
+  std::cout << "b is " << b << std::endl;
   // std::cout << "x is " << x << std::endl;
   itl::cyclic_iteration<double> iter(b, 100, 1.e-11, 0.0, 5);
   cg(A, x, b, P, iter);
