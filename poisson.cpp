@@ -286,7 +286,7 @@ int main(int argc, char **argv)
   };
   GraphSymmetricMatrix A(graph, boundary);
   itl::pc::identity<GraphSymmetricMatrix> P(A);
-  x = 0;
+  x = 1.;
   // std::cout << "b is " << b << std::endl;
   // std::cout << "x is " << x << std::endl;
   itl::cyclic_iteration<double> iter(b, 100, 1.e-11, 0.0, 5);
