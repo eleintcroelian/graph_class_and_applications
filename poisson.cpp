@@ -21,6 +21,7 @@
 
 #include "Graph.hpp"
 #include <math.h>
+#include <algorithm>
 using GraphType = Graph<char, char>; //<  DUMMY Placeholder
 using NodeType = typename GraphType::node_type;
 bool is_boundary(NodeType n)
@@ -77,38 +78,27 @@ public:
   template <typename VectorIn, typename VectorOut, typename Assign>
   void mult(const VectorIn &v, VectorOut &w, Assign) const
   {
-    double Lij;
-    double Aij;
     for (size_t i = 0; i < g_->num_nodes(); i++) //row
     {
-      double temp = 0;
-      for (size_t j = 0; j < g_->num_nodes(); j++) //column
+      auto n_i = g_->node(i);
+      double temp = 0.;
+      if (is_boundary(n_i))
       {
-        if ((i == j) && is_boundary(g_->node(i)))
-        {
-          Aij = 1.;
-          temp += Aij * v[j];
-          continue;
-        }
-        else if ((i != j) && (is_boundary(g_->node(i)) || is_boundary(g_->node(j))))
-        {
-          continue;
-        }
-        if (i == j)
-        {
-          Aij = -g_->node(i).degree();
-          temp += Aij * v[j];
-          continue;
-        }
-        if (g_->has_edge(g_->node(i), g_->node(j)))
-        {
-          Aij = 1.;
-          temp += Aij * v[j];
-          continue;
-        }
-        continue;
+        temp += v[i];
       }
-      // temp = std::inner_product(A_row.begin(), A_row.end(), v.begin(), 0);
+      else
+      {
+        double deg = n_i.degree();
+        temp -= deg * v[i];
+        for (auto it = n_i.edge_begin(); it != n_i.edge_end(); ++it)
+        {
+          auto node2 = (*it).node2();
+          if (!is_boundary(node2))
+          {
+            temp += v[node2.index()];
+          }
+        }
+      }
       Assign::apply(w[i], temp);
       // Assign::apply(w[i], temp);
     }
@@ -196,6 +186,79 @@ void boundary_tag(GraphType *g, std::vector<unsigned int> &boundary)
     }
   };
 };
+struct NodeColor
+{
+  NodeColor(mtl::dense_vector<double> &x)
+  {
+    x_ = x;
+    maxel = *std::max_element(x_.begin(), x_.end());
+    minel = *std::min_element(x_.begin(), x_.end());
+    range = std::abs(maxel - minel + 1e-5);
+  }
+
+  CME212::Color operator()(GraphType::node_type n1)
+  {
+    double val = x_[n1.index()];
+    return (CME212::Color::make_heat((val - minel + 1e-5) / range));
+  }
+  mtl::dense_vector<double> x_;
+  double maxel;
+  double minel;
+  double range;
+};
+
+struct NodePosition
+{
+  NodePosition(mtl::dense_vector<double> &x) { x_ = x; }
+
+  Point operator()(GraphType::node_type n1)
+  {
+    Point pos = n1.position();
+    pos.z = x_[n1.index()];
+    return pos;
+  }
+  mtl::dense_vector<double> x_;
+};
+template <class Real>
+class visual_iteration : public itl::cyclic_iteration<Real>
+{
+public:
+  typedef itl::cyclic_iteration<Real> super;
+  typedef visual_iteration self;
+
+  visual_iteration(CME212::SFML_Viewer *viewer, GraphType *graph, mtl::dense_vector<double> *x,
+                   mtl::dense_vector<double> *b, std::map<NodeType, unsigned> &map) : super(*b, 500, 1.e-15, 0.0, 50)
+  {
+    viewer_ = viewer;
+    graph_ = graph;
+    x_ = x;
+    map_ = map;
+  };
+
+  void plot_iteration()
+  {
+    // viewer_->clear();
+    // auto node_map = viewer_->empty_node_map(*graph_);
+    NodeColor colorfunc(*x_);
+    NodePosition positionfunc(*x_);
+    viewer_->add_nodes(graph_->node_begin(), graph_->node_end(), colorfunc, positionfunc, map_);
+    // viewer_->add_edges(graph_->edge_begin(), graph_->edge_end(), node_map);
+  }
+
+  template <typename T>
+  bool finished(const T &r)
+  {
+    bool ret = super::finished(r);
+    plot_iteration();
+    return ret;
+  }
+
+private:
+  CME212::SFML_Viewer *viewer_;
+  GraphType *graph_;
+  mtl::dense_vector<double> *x_;
+  std::map<NodeType, unsigned> map_;
+};
 
 int main(int argc, char **argv)
 {
@@ -250,7 +313,7 @@ int main(int argc, char **argv)
   // Define b using the graph, f, and g.
   // Construct the GraphSymmetricMatrix A using the graph
   // Solve Au = b using MTL.
-  mtl::dense_vector<double> x(graph.num_nodes(), 1.0), b(graph.num_nodes());
+  mtl::dense_vector<double> x(graph.num_nodes()), b(graph.num_nodes());
   g_func G;
 
   // Building b
@@ -268,7 +331,10 @@ int main(int argc, char **argv)
       for (auto it2 = (*it).edge_begin(); it2 != (*it).edge_end(); ++it2)
       {
         auto node2 = (*it2).node2();
-        sum += G(node2.position());
+        if (is_boundary(node2))
+        {
+          sum += G(node2.position());
+        }
       }
       b[i] = (h * h) * f(xi) - sum;
     }
@@ -276,11 +342,30 @@ int main(int argc, char **argv)
   GraphSymmetricMatrix A(graph, boundary);
   itl::pc::identity<GraphSymmetricMatrix> P(A);
   x = 0.;
-  std::cout << "b is " << b << std::endl;
-  // std::cout << "x is " << x << std::endl;
-  itl::cyclic_iteration<double> iter(b, 100, 1.e-11, 0.0, 5);
-  cg(A, x, b, P, iter);
-  // std::cout << "b is " << b << std::endl;
-  // std::cout << "x is " << x << std::endl;
+
+  CME212::SFML_Viewer viewer;
+  NodeColor colorfunc(x);
+  NodePosition positionfunc(x);
+
+  auto node_map = viewer.empty_node_map(graph);
+  viewer.add_nodes(graph.node_begin(), graph.node_end(), colorfunc, positionfunc, node_map);
+  viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
+  viewer.center_view();
+
+  itl::cyclic_iteration<double> iter(b, 300, 1.e-15, 0.0, 50);
+  visual_iteration<double> vis_iter(&viewer, &graph, &x, &b,node_map);
+
+  bool interrupt_sim_thread = false;
+
+  auto sim_thread = std::thread([&]() { cg(A, x, b, P, vis_iter); });
+  viewer.event_loop();
+
+  interrupt_sim_thread = true;
+  sim_thread.join();
+
+  // auto node_map = viewer.empty_node_map(graph);
+  // viewer.add_nodes(graph.node_begin(), graph.node_end(), colorfunc, positionfunc, node_map);
+  // viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
+
   return 0;
 }
