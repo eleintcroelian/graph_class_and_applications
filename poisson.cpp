@@ -227,7 +227,7 @@ public:
   typedef visual_iteration self;
 
   visual_iteration(CME212::SFML_Viewer *viewer, GraphType *graph, mtl::dense_vector<double> *x,
-                   mtl::dense_vector<double> *b, std::map<NodeType, unsigned> &map) : super(*b, 500, 1.e-15, 0.0, 50)
+                   mtl::dense_vector<double> *b, std::map<NodeType, unsigned> &map) : super(*b, 500, 1.e-10, 0.0, 50)
   {
     viewer_ = viewer;
     graph_ = graph;
@@ -341,7 +341,7 @@ int main(int argc, char **argv)
   };
   GraphSymmetricMatrix A(graph, boundary);
   itl::pc::identity<GraphSymmetricMatrix> P(A);
-  x = 0.;
+  x = b;
 
   CME212::SFML_Viewer viewer;
   NodeColor colorfunc(x);
@@ -352,8 +352,8 @@ int main(int argc, char **argv)
   viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
   viewer.center_view();
 
-  itl::cyclic_iteration<double> iter(b, 300, 1.e-15, 0.0, 50);
-  visual_iteration<double> vis_iter(&viewer, &graph, &x, &b,node_map);
+  // itl::cyclic_iteration<double> iter(b, 300, 1.e-15, 0.0, 50);
+  visual_iteration<double> vis_iter(&viewer, &graph, &x, &b, node_map);
 
   bool interrupt_sim_thread = false;
 
@@ -362,10 +362,6 @@ int main(int argc, char **argv)
 
   interrupt_sim_thread = true;
   sim_thread.join();
-
-  // auto node_map = viewer.empty_node_map(graph);
-  // viewer.add_nodes(graph.node_begin(), graph.node_end(), colorfunc, positionfunc, node_map);
-  // viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
 
   return 0;
 }
