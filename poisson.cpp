@@ -201,10 +201,14 @@ struct NodeColor
     double val = x_[n1.index()];
     return (CME212::Color::make_heat((val - minel + 1e-5) / range));
   }
+//--design_1
+//--these functors should store references or pointers to the vector, avoiding copies
+//--START
   mtl::dense_vector<double> x_;
   double maxel;
   double minel;
   double range;
+//--END
 };
 
 struct NodePosition
@@ -363,5 +367,8 @@ int main(int argc, char **argv)
   interrupt_sim_thread = true;
   sim_thread.join();
 
+//--functionality_0
+//--well done, keep it up
+//--END
   return 0;
 }

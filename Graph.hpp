@@ -6,6 +6,10 @@
  * @brief An undirected graph type
  */
 
+//--functionality_0
+//--good job correcting Graph
+//--END
+
 #include <algorithm>
 #include <vector>
 #include <cassert>
@@ -853,7 +857,11 @@ public:
    */
   node_iterator remove_node(node_iterator n_it)
   {
-    node_iterator temp(this, *n_it.index());
+    //--functionality_0
+    //--small error
+    node_iterator temp(this, (*n_it).index());
+    //node_iterator temp(this, *n_it.index());
+    //--END
     remove_node(*n_it);
     return temp;
   }

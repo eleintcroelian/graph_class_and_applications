@@ -1,0 +1,63 @@
+FILE:          Graph.hpp
+FUNCTIONALITY  
+
+COMMENTS:
+-good job correcting Graph
+
+                  
+
+
+--------------------------
+FILE:          Graph.hpp
+FUNCTIONALITY  
+
+COMMENTS:
+-small error
+
+                  
+
+
+--------------------------
+FILE:          poisson.cpp
+DESIGN         
+
+COMMENTS:
+-these functors should store references or pointers to the vector, avoiding copies
+
+RELEVANT CODE:
+mtl::dense_vector<double> x_;
+  double maxel;
+  double minel;
+  double range;
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+FILE:          poisson.cpp
+FUNCTIONALITY  
+
+COMMENTS:
+-well done, keep it up
+
+                  
+
+
+--------------------------
+
+GRADING TA                  
+SUNet ID: lwarne, GitHub ID lwarne
+###################################################
+
+FUNCTIONALITY SCORE:                      +
+###################################################
+
+DESIGN SCORE:                            ok
+###################################################
+
+STYLE SCORE:                              +
+###################################################
+
+WRITEUP SCORE:                            +
+###################################################
+If you have any problem about grading result, please file an issue in your GitHub repo.

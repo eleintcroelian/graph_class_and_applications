@@ -33,7 +33,8 @@ DEPSFLAGS = -MD -MF $(DEPSFILE) #-MP
 
 # Define any directories containing header files
 #   To include directories use -Ipath/to/files
-INCLUDES += -I.  -I/usr/local/include/
+INCLUDES += -I.  #-I/usr/local/include/
+INCLUDES += -I/afs/ir/class/cme212/cme212-2020/repos_hw3/MTL-4.0.9555-Linux/usr/include
 
 # Define cxx compile flags
 CXXFLAGS  := -std=c++11 -O3 -W -Wall -Wextra -Wno-deprecated-declarations #-Wfatal-errors
