@@ -21,7 +21,9 @@ ifeq ($(arch-name),)
 endif
 
 # Define the C++ compiler to use
-CXX := $(shell which clang++)
+# CXX := $(shell which clang++)
+
+CXX := /usr/local/opt/llvm/bin/clang++
 
 # Dependency directory and flags
 DEPSDIR := $(shell mkdir -p .deps; echo .deps)
@@ -33,14 +35,15 @@ DEPSFLAGS = -MD -MF $(DEPSFILE) #-MP
 
 # Define any directories containing header files
 #   To include directories use -Ipath/to/files
-INCLUDES += -I.  -I/usr/local/include/
+INCLUDES += -I. -I/usr/local/include/
+INCLUDES += -I ./thrust
 
 # Define cxx compile flags
-CXXFLAGS  := -std=c++11 -O3 -W -Wall -Wextra -Wno-deprecated-declarations #-Wfatal-errors
-
+CXXFLAGS  := -std=c++11 -O3 -W -Wall -Wextra -Wno-deprecated-declarations -fopenmp #-Wfatal-errors 
+CXXFLAGS += -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP
 # Define any directories containing libraries
 #   To include directories use -Lpath/to/files
-LDFLAGS +=
+LDFLAGS += -L/usr/local/lib/
 
 # Define any libraries to link into executable
 #   To link in libraries (libXXX.so or libXXX.a) use -lXXX

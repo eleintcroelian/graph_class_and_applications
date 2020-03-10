@@ -1,7 +1,7 @@
 #ifndef CME212_g_HPP
 #define CME212_g_HPP
 
-/** @file The peercode g_1481.hpp from hw2 have been highly taken as basis for
+/** @file The peercode g_1481.hpp from hw2 have been taken as basis for
  * this Graph class for the purposes of hw3.
  * @brief An undirected graph type
  */
@@ -12,7 +12,7 @@
 #include <map>
 #include "CME212/Util.hpp"
 #include "CME212/Point.hpp"
-
+#include "thrust/iterator/transform_iterator.h"
 /** @class Graph
  * @brief A template for 3D undirected graphs.
  *
@@ -70,11 +70,6 @@ public:
   class Edge;
   /** Synonym for Edge (following STL conventions). */
   using edge_type = Edge;
-
-  /** Type of node iterators, which iterate over all graph nodes. */
-  class NodeIterator;
-  /** Synonym for NodeIterator */
-  using node_iterator = NodeIterator;
 
   /** Type of edge iterators, which iterate over all graph edges. */
   class EdgeIterator;
@@ -482,88 +477,30 @@ public:
   //
   // Node Iterator
   //
-
+  struct Uid2Node
+  {
+    Node operator()(unsigned int uid) { return Node(g_, uid); }
+    const Graph *g_;
+  };
   /** @class Graph::NodeIterator
    * @brief Iterator class for nodes. A forward iterator. */
-  class NodeIterator
-  {
-  public:
-    // These type definitions let us use STL's iterator_traits.
-    using value_type = Node;                           // Element type
-    using pointer = Node *;                            // Pointers to elements
-    using reference = Node &;                          // Reference to elements
-    using difference_type = std::ptrdiff_t;            // Signed difference
-    using iterator_category = std::input_iterator_tag; // Weak Category, Proxy
 
-    /** Construct an invalid NodeIterator. */
-    NodeIterator()
-    {
-    }
-
-    // HW1 #2: YOUR CODE HERE
-    // Supply definitions AND SPECIFICATIONS for:
-
-    /* @brief Dereference operator
-     * @return An node pointed by the iterator
-     */
-    Node operator*() const
-    {
-      return itr_g_->node(idx_);
-    }
-
-    /* @brief Increment to the next node
-     * @return A node iterator pointing to the next node
-     * @post The iterator points to the next node
-     */
-    NodeIterator &operator++()
-    {
-      idx_++;
-      return *this;
-    }
-
-    /* @brief Defines equality between two iterators
-     * @return True if two iterators points to the same node
-     */
-    bool operator==(const NodeIterator &node_itr) const
-    {
-      return ((itr_g_ == node_itr.itr_g_) && (idx_ == node_itr.idx_));
-    }
-
-    /* @brief Defines inequality between two iterators
-     * @return True if two iterators don't point to the same node
-     */
-    bool operator!=(const NodeIterator &node_itr) const
-    {
-      return ((itr_g_ != node_itr.itr_g_) || (idx_ != node_itr.idx_));
-    }
-
-  private:
-    friend class Graph;
-    Graph *itr_g_;
-    size_type idx_;
-    NodeIterator(const Graph *itr_graph, size_type id)
-        : itr_g_(const_cast<Graph *>(itr_graph)), idx_(id)
-    {
-    }
-  };
-
-  // HW1 #2: YOUR CODE HERE
-  // Supply definitions AND SPECIFICATIONS for:
-
+  using node_iterator = thrust::transform_iterator<Uid2Node, std::vector<unsigned int>::const_iterator, Node>;
   /* 
    * @return An iterator that points at the start of the nodes
    */
   node_iterator node_begin() const
   {
-    return node_iterator(this, 0);
+    //return node_iterator(this, 0);
+    return node_iterator(node_i2u_.begin(), Uid2Node{this});
   }
-
   /*
    * @return An iterator that points at end end of the nodes
    */
   node_iterator node_end() const
   {
-    return node_iterator(this, num_nodes());
+    //return node_iterator(this, num_nodes());
+    return node_iterator(node_i2u_.end(), Uid2Node{this});
   }
   //
   // Incident Iterator
@@ -585,10 +522,6 @@ public:
     IncidentIterator()
     {
     }
-
-    // HW1 #3: YOUR CODE HERE
-    // Supply definitions AND SPECIFICATIONS for:
-
     /* @brief Dereference operator
      * @return An edge pointed by the iterator
      */
@@ -627,7 +560,6 @@ public:
 
   private:
     friend class Graph;
-    // HW1 #3: YOUR CODE HERE
     Graph *ii_g_;
     size_type node_idx_;
     std::map<size_type, size_type>::iterator map_itr_;
@@ -665,10 +597,6 @@ public:
     EdgeIterator()
     {
     }
-
-    // HW1 #5: YOUR CODE HERE
-    // Supply definitions AND SPECIFICATIONS for:
-
     /* @brief Dereference operator
      * @return An edge pointed by the iterator
      */
@@ -713,9 +641,6 @@ public:
     {
     }
   };
-
-  // HW1 #5: YOUR CODE HERE
-  // Supply definitions AND SPECIFICATIONS for:
 
   /* @return An iterator pointing at the start of the edges */
   edge_iterator edge_begin() const

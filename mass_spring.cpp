@@ -18,7 +18,8 @@
 #include "CME212/Point.hpp"
 
 #include "Graph.hpp"
-
+#include <thrust/for_each.h>
+#include <thrust/execution_policy.h>
 // Gravity in meters/sec^2
 static constexpr double grav = 9.81;
 static constexpr double c = 0.01;
@@ -56,35 +57,40 @@ using Edge = typename GraphType::edge_type;
  *           @a force must return a Point representing the force vector on
  *           Node n at time @a t.
  */
+
+struct PositionUpdate
+{
+  void operator()(Node n)
+  {
+    n.position() += n.value().vel * dt;
+  }
+  double dt;
+};
+
+template <typename K>
+struct VelocityUpdate
+{
+  void operator()(Node n)
+  {
+    n.value().vel += force(n, t) * (dt / n.value().mass);
+  }
+  double dt;
+  double t;
+  K force;
+};
+
 template <typename G, typename F, typename C>
 double symp_euler_step(G &g, double t, double dt, F force, C constraint)
 {
-
   // Compute the t+dt position
-  for (auto it = g.node_begin(); it != g.node_end(); ++it)
-  {
-    auto n = *it;
-    // if (n.position() == Point(0, 0, 0) || n.position() == Point(1, 0, 0))
-    // {
-    //   continue;
-    // }
-    // Update the position of the node according to its velocity
-    // x^{n+1} = x^{n} + v^{n} * dt
-    n.position() += n.value().vel * dt;
-  }
+  // x^{n+1} = x^{n} + v^{n} * dt
+
+  thrust::for_each(thrust::omp::par,g.node_begin(), g.node_end(), PositionUpdate{dt});
   constraint(&g, t);
   // Compute the t+dt velocity
-  for (auto it = g.node_begin(); it != g.node_end(); ++it)
-  {
-    auto n = *it;
-    // if (n.position() == Point(0, 0, 0) || n.position() == Point(1, 0, 0))
-    // {
-    //   continue;
-    // }
+  // v^{n+1} = v^{n} + F(x^{n+1},t) * dt / m
+  thrust::for_each(thrust::omp::par,g.node_begin(), g.node_end(), VelocityUpdate<decltype(force)>{dt, t, force});
 
-    // v^{n+1} = v^{n} + F(x^{n+1},t) * dt / m
-    n.value().vel += force(n, t) * (dt / n.value().mass);
-  }
   return t + dt;
 }
 
@@ -383,7 +389,7 @@ int main(int argc, char **argv)
   bool interrupt_sim_thread = false;
   auto sim_thread = std::thread([&]() {
     // Begin the mass-spring simulation
-    double dt = 0.0001;
+    double dt = 0.00005;
     double t_start = 0;
     double t_end = 5.0;
     // double L = (*graph.edge_begin()).length();
@@ -398,7 +404,7 @@ int main(int argc, char **argv)
       RemoveConstraint r_c;
       constraint_vector.push_back(&p_c);
       // constraint_vector.push_back(&s_c);
-      constraint_vector.push_back(&r_c);
+      constraint_vector.push_back(&s_c);
 
       symp_euler_step(graph, t, dt, make_combined_force(GravityForce(), MassSpringForce()),
                       CombinedConstraints(constraint_vector));
