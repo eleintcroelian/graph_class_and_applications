@@ -7,6 +7,9 @@
 #include "CME212/Point.hpp"
 #include "CME212/BoundingBox.hpp"
 #include "MortonCoder.hpp"
+#include <thrust/tuple.h>
+#include <thrust/iterator/zip_iterator.h>
+#include <thrust/copy.h>
 
 /** @class SpaceSearcher
  * @brief Class for making spatial searches, which uses the MortonCoder
@@ -22,7 +25,7 @@
 template <typename T, int L = 7>
 class SpaceSearcher
 {
- private:
+private:
   // Implementation types
 
   /** The number of levels in the MortonCoder. This controls the "accuracy" of
@@ -37,8 +40,7 @@ class SpaceSearcher
   /** Helper struct: (code_type,T) pair */
   struct morton_pair;
 
- public:
-
+public:
   ////////////////////////////////////
   // TYPE DEFINITIONS AND CONSTANTS //
   ////////////////////////////////////
@@ -50,11 +52,10 @@ class SpaceSearcher
   struct NeighborhoodIterator;
 
   /** Synonym for NeighborhoodIterator */
-  using iterator       = NeighborhoodIterator;
+  using iterator = NeighborhoodIterator;
   using const_iterator = NeighborhoodIterator;
 
- public:
-
+public:
   /////////////////
   // CONSTRUCTOR //
   /////////////////
@@ -79,9 +80,9 @@ class SpaceSearcher
    * @pre For all i in [@a first,@a last), @a bb.contains(@a t2p(*i)).
    */
   template <typename TIter, typename T2Point>
-  SpaceSearcher(const Box3D& bb,
-                TIter first, TIter last, T2Point t2p) {
-    // HW4: YOUR CODE HERE
+  SpaceSearcher(const Box3D &bb,
+                TIter first, TIter last, T2Point t2p) : SpaceSearcher(bb, first, last, thrust::make_transform_iterator(first, t2p), thrust::make_transform_iterator(last, t2p))
+  {
   }
 
   /** @brief SpaceSearcher Constructor.
@@ -104,10 +105,32 @@ class SpaceSearcher
    * @pre std::distance(tfirst,tlast) == std::distance(pfirst,plast).
    * @pre For all i in [@a pfirst,@a plast), bb.contains(*i).
    */
+  struct point_to_morton
+  {
+    point_to_morton(const MortonCoderType &a) : m_(a){};
+
+    uint32_t operator()(const Point &p)
+    {
+      return m_.code(p);
+    }
+    MortonCoderType m_;
+  };
+
   template <typename TIter, typename PointIter>
-  SpaceSearcher(const Box3D& bb,
+  SpaceSearcher(const Box3D &bb,
                 TIter tfirst, TIter tlast,
-                PointIter pfirst, PointIter plast) {
+                PointIter pfirst, PointIter plast) : mc_(bb)
+  {
+    thrust::transform_iterator<point_to_morton, PointIter, uint32_t> morton_iter_begin(pfirst, point_to_morton(mc_));
+    thrust::transform_iterator<point_to_morton, PointIter, uint32_t> morton_iter_end(plast, point_to_morton(mc_));
+
+    typedef thrust::tuple<thrust::transform_iterator<point_to_morton, PointIter, uint32_t>, TIter> IteratorTuple;
+
+    thrust::zip_iterator<IteratorTuple> zip_iter_begin(thrust::make_tuple(morton_iter_begin, tfirst));
+    thrust::zip_iterator<IteratorTuple> zip_iter_end(thrust::make_tuple(morton_iter_end, tlast));
+
+    z_data_ = std::vector<morton_pair>(zip_iter_begin, zip_iter_end);
+    std::sort(z_data_.begin(), z_data_.end()); 
     // HW4: YOUR CODE HERE
   }
 
@@ -116,7 +139,8 @@ class SpaceSearcher
   ///////////////
 
   /** The bounding box this SpaceSearcher functions within. */
-  Box3D bounding_box() const {
+  Box3D bounding_box() const
+  {
     return mc_.bounding_box();
   }
 
@@ -130,32 +154,38 @@ class SpaceSearcher
    * Iterates over data items of type @a T contained
    * within epsilon of a given bounding box.
    */
-  struct NeighborhoodIterator {
-    using value_type        = T;
-    using pointer           = T*;
-    using reference         = T&;
-    using difference_type   = std::ptrdiff_t;
+  struct NeighborhoodIterator
+  {
+    using value_type = T;
+    using pointer = T *;
+    using reference = T &;
+    using difference_type = std::ptrdiff_t;
     using iterator_category = std::forward_iterator_tag;
 
     // Default constructor
     NeighborhoodIterator() = default;
 
     // Iterator operators
-    const value_type& operator*() const {
+    const value_type &operator*() const
+    {
       return (*i_).value_;
     }
-    NeighborhoodIterator& operator++() {
-      ++i_; fix();
+    NeighborhoodIterator &operator++()
+    {
+      ++i_;
+      fix();
       return *this;
     }
-    bool operator==(const NeighborhoodIterator& other) const {
+    bool operator==(const NeighborhoodIterator &other) const
+    {
       return i_ == other.i_;
     }
-    bool operator!=(const NeighborhoodIterator& other) const {
+    bool operator!=(const NeighborhoodIterator &other) const
+    {
       return !(*this == other);
     }
 
-   private:
+  private:
     friend SpaceSearcher;
     using MortonIter = typename std::vector<morton_pair>::const_iterator;
     // RI: i_ == end_ || MortonCoderType::is_in_box(*i_, min_, max_)
@@ -163,14 +193,18 @@ class SpaceSearcher
     code_type min_, max_;
     NeighborhoodIterator(MortonIter i, MortonIter end,
                          code_type min, code_type max)
-        : i_(i), end_(end), min_(min), max_(max) {
+        : i_(i), end_(end), min_(min), max_(max)
+    {
       fix();
     }
     // @post RI
-    void fix() {
-      while (i_ < end_) {
+    void fix()
+    {
+      while (i_ < end_)
+      {
         code_type c = MortonCoderType::advance_to_box(*i_, min_, max_);
-        if (c == *i_) break;
+        if (c == *i_)
+          break;
         i_ = std::lower_bound(i_, end_, c);
       }
     }
@@ -181,7 +215,8 @@ class SpaceSearcher
    * @param bb The bounding box to iterate over.
    * @pre bounding_box.contains(bb)
    */
-  const_iterator begin(const Box3D& bb) const {
+  const_iterator begin(const Box3D &bb) const
+  {
     assert(bounding_box().contains(bb));
     code_type morton_min = mc_.code(bb.min());
     code_type morton_max = mc_.code(bb.max());
@@ -194,7 +229,8 @@ class SpaceSearcher
    * @param bb The bounding box to iterate over.
    * @pre bounding_box.contains(bb)
    */
-  const_iterator end(const Box3D& bb) const {
+  const_iterator end(const Box3D &bb) const
+  {
     assert(bounding_box().contains(bb));
     code_type morton_min = mc_.code(bb.min());
     code_type morton_max = mc_.code(bb.max());
@@ -202,18 +238,19 @@ class SpaceSearcher
     return NeighborhoodIterator(mit_end, mit_end, morton_min, morton_max);
   }
 
- private:
-
+private:
   // MortonCoder instance associated with this SpaceSearcher.
   MortonCoderType mc_;
 
   // A (code_type,value_type) pair that can be used as a MortonCode
-  struct morton_pair {
+  struct morton_pair
+  {
     code_type code_;
     value_type value_;
     // Cast operator to treat a morton_pair as a code_type in std::algorithms
-    operator const code_type&() const { return code_; }
+    operator const code_type &() const { return code_; }
     // HW4: YOUR CODE HERE
+    morton_pair(const thrust::tuple<code_type, T> &a) : code_(thrust::get<0>(a)), value_(thrust::get<1>(a)) {}
   };
 
   // Pairs of Morton codes and data items of type T.

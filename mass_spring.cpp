@@ -20,6 +20,7 @@
 #include "Graph.hpp"
 #include <thrust/for_each.h>
 #include <thrust/execution_policy.h>
+#include "SpaceSearcher.hpp"
 // Gravity in meters/sec^2
 static constexpr double grav = 9.81;
 static constexpr double c = 0.01;
@@ -84,12 +85,11 @@ double symp_euler_step(G &g, double t, double dt, F force, C constraint)
 {
   // Compute the t+dt position
   // x^{n+1} = x^{n} + v^{n} * dt
-
-  thrust::for_each(thrust::omp::par,g.node_begin(), g.node_end(), PositionUpdate{dt});
+  thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), PositionUpdate{dt});
   constraint(&g, t);
   // Compute the t+dt velocity
   // v^{n+1} = v^{n} + F(x^{n+1},t) * dt / m
-  thrust::for_each(thrust::omp::par,g.node_begin(), g.node_end(), VelocityUpdate<decltype(force)>{dt, t, force});
+  thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), VelocityUpdate<decltype(force)>{dt, t, force});
 
   return t + dt;
 }
@@ -306,6 +306,44 @@ public:
     }
   }
 };
+struct CollisionUpdate
+{
+  CollisionUpdate(const GraphType &g_) : g(g_) {}
+  void operator()(Node n)
+  {
+    auto n2p = [](const Node &n) { return n.position(); };
+    Box3D bigbb(n.position() + Point(-2, -2, -2), n.position() + Point(2, 2, 2));
+    SpaceSearcher<Node> searcher(bigbb, g.node_begin(), g.node_end(), n2p);
+    const Point &center = n.position();
+    double radius2 = std::numeric_limits<double>::max();
+    for (auto it2 = n.edge_begin(); it2 != n.edge_end(); ++it2)
+    {
+      auto e = *it2;
+      radius2 = std::min(radius2, normSq(e.node2().position() - center));
+    }
+    radius2 *= 0.9;
+    Box3D bb(center - (radius2 / norm(Point(1, 1, 1))) * Point(1, 1, 1), center + (radius2 / norm(Point(1, 1, 1))) * Point(1, 1, 1));
+    for (auto it3 = searcher.begin(bb); it3 != searcher.end(bb); ++it3)
+    {
+      auto n2 = *it3;
+      Point r = center - n2.position();
+      double l2 = normSq(r);
+      if (n != n2 && l2 < radius2)
+      {
+        // Remove our velocity component in r
+        n.value().vel -= (dot(r, n.value().vel) / l2) * r;
+      }
+    }
+  }
+  GraphType g;
+};
+struct SelfCollisionConstraint : public ZeroConstraint
+{
+  void operator()(GraphType &g, double) const
+  {
+    thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), CollisionUpdate(g));
+  }
+};
 struct CombinedConstraints
 {
   CombinedConstraints(std::vector<ZeroConstraint *> inputconstraints) : inputconstraints_(inputconstraints){};
@@ -389,7 +427,7 @@ int main(int argc, char **argv)
   bool interrupt_sim_thread = false;
   auto sim_thread = std::thread([&]() {
     // Begin the mass-spring simulation
-    double dt = 0.00005;
+    double dt = 0.0001;
     double t_start = 0;
     double t_end = 5.0;
     // double L = (*graph.edge_begin()).length();
@@ -402,9 +440,10 @@ int main(int argc, char **argv)
       SphereConstraint s_c;
       PlaneConstraint pl_c;
       RemoveConstraint r_c;
-      constraint_vector.push_back(&p_c);
-      // constraint_vector.push_back(&s_c);
+      SelfCollisionConstraint self_c;
+      // constraint_vector.push_back(&p_c);
       constraint_vector.push_back(&s_c);
+      constraint_vector.push_back(&self_c);
 
       symp_euler_step(graph, t, dt, make_combined_force(GravityForce(), MassSpringForce()),
                       CombinedConstraints(constraint_vector));

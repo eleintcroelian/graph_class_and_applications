@@ -12,8 +12,8 @@
 #include "CME212/Point.hpp"
 #include "CME212/BoundingBox.hpp"
 
-
-namespace detail {
+namespace detail
+{
 
 /** Spreads the first 10-bits of a 32-bit number so that there are two 0s
  *   in between each bit.
@@ -21,9 +21,15 @@ namespace detail {
  * @returns     32-bit integer of the form 0b0000A00B00C00D00E00F00G00H00I00J,
  *   where each A,...,J is the corresponding bit from @a x
  */
-inline uint32_t spread_bits(uint32_t x) {
-  // HW4: YOUR CODE HERE
-  return x;
+inline uint32_t spread_bits(uint32_t x)
+{
+  std::bitset<32> x_bit (x);
+  std::bitset<32> output;
+  for (size_t i = 0; i < 10; i++)
+  {
+    output[3*i]=x_bit[i];
+  }
+  return (uint32_t)output.to_ulong();
 }
 
 /** Compacts every third bit in a 32-bit integer to the lowest 10-bits.
@@ -32,20 +38,27 @@ inline uint32_t spread_bits(uint32_t x) {
  * @returns     32-bit integer of form 0b0000000000000000000000ABCDEFGHIJ
  *   where each A,...,J is the corresponding bit from @a x
  */
-inline uint32_t compact_bits(uint32_t x) {
-  // HW4: YOUR CODE HERE
-  return x;
+inline uint32_t compact_bits(uint32_t x)
+{
+  std::bitset<32> x_bit (x);
+  std::bitset<32> output;
+  for (size_t i = 0; i < 10; i++)
+  {
+    output[i]=x_bit[3*i];
+  }
+  return (uint32_t)output.to_ulong();
 }
 
 /** Smears the bits in c into the low bits by steps of one
  *
  * Example: 00011100100 -> 000111111111
  */
-inline uint32_t smear_low_1(uint32_t c) {
-  c |= c >>  1;
-  c |= c >>  2;
-  c |= c >>  4;
-  c |= c >>  8;
+inline uint32_t smear_low_1(uint32_t c)
+{
+  c |= c >> 1;
+  c |= c >> 2;
+  c |= c >> 4;
+  c |= c >> 8;
   c |= c >> 16;
   return c;
 }
@@ -54,16 +67,16 @@ inline uint32_t smear_low_1(uint32_t c) {
  *
  * Example: 0000010000000000 -> 0000010010010010
  */
-inline uint32_t smear_low_3(uint32_t c) {
-  c |= c >>  3;
-  c |= c >>  6;
+inline uint32_t smear_low_3(uint32_t c)
+{
+  c |= c >> 3;
+  c |= c >> 6;
   c |= c >> 12;
   c |= c >> 24;
   return c;
 }
 
 } // end namespace detail
-
 
 /** @class MortonCoder
  * @brief Class representing Z-order-curve values, aka Morton codes.
@@ -97,13 +110,13 @@ inline uint32_t smear_low_3(uint32_t c) {
 template <int L = 5>
 class MortonCoder
 {
- public:
+public:
   /** The type to use for the Morton codes -- allows 30-bit codes */
   using code_type = uint32_t;
 
   // Using a 32-bit unsigned int for the code_type
   // means we can only resolve 10 3D levels
-  static_assert(L >= 1 && L <= 8*sizeof(code_type)/3,
+  static_assert(L >= 1 && L <= 8 * sizeof(code_type) / 3,
                 "L (LEVELS) must fit into code_type");
 
   /** The number of bits per dimension [octree subdivisions]. #cells = 8^L. */
@@ -111,24 +124,27 @@ class MortonCoder
   /** The number of cells per side of the bounding box (2^L). */
   static constexpr code_type cells_per_side = code_type(1) << L;
   /** One more than the largest code (8^L). */
-  static constexpr code_type end_code = code_type(1) << (3*L);
+  static constexpr code_type end_code = code_type(1) << (3 * L);
 
   /** Construct a MortonCoder with a bounding box. */
-  MortonCoder(const Box3D& bb)
-    : pmin_(bb.min()),
-      cell_size_((bb.max() - bb.min()) / cells_per_side) {
+  MortonCoder(const Box3D &bb)
+      : pmin_(bb.min()),
+        cell_size_((bb.max() - bb.min()) / cells_per_side)
+  {
     assert(!bb.empty());
   }
 
   /** Return the MortonCoder's bounding box. */
-  Box3D bounding_box() const {
+  Box3D bounding_box() const
+  {
     return Box3D(pmin_, pmin_ + (cell_size_ * cells_per_side));
   }
 
   /** Return the bounding box of the cell with Morton code @a c.
    * @pre c < end_code
    */
-  Box3D cell(code_type c) const {
+  Box3D cell(code_type c) const
+  {
     assert(c < end_code);
     Point p = deinterleave(c);
     p *= cell_size_;
@@ -140,7 +156,8 @@ class MortonCoder
    * @pre bounding_box().contains(@a p)
    * @post cell(result).contains(@a p)
    */
-  code_type code(Point p) const {
+  code_type code(Point p) const
+  {
     assert(bounding_box().contains(p));
     p -= pmin_;
     p /= cell_size_;
@@ -156,10 +173,9 @@ class MortonCoder
   /** True if min <= idx <= max and idx is inside the box defined
    * by the Morton codes @a min and @a max
    */
-  static bool is_in_box(code_type idx, code_type min, code_type max) {
-    return (min & x_mask) <= (idx & x_mask) && (idx & x_mask) <= (max & x_mask)
-        && (min & y_mask) <= (idx & y_mask) && (idx & y_mask) <= (max & y_mask)
-        && (min & z_mask) <= (idx & z_mask) && (idx & z_mask) <= (max & z_mask);
+  static bool is_in_box(code_type idx, code_type min, code_type max)
+  {
+    return (min & x_mask) <= (idx & x_mask) && (idx & x_mask) <= (max & x_mask) && (min & y_mask) <= (idx & y_mask) && (idx & y_mask) <= (max & y_mask) && (min & z_mask) <= (idx & z_mask) && (idx & z_mask) <= (max & z_mask);
   }
 
   /** Advance idx to the next box contained in the bounding box defined
@@ -172,20 +188,29 @@ class MortonCoder
    * @post result > @a max || is_in_box(result,@a min,@a max)
    * @post result >= @a idx
    */
-  static code_type advance_to_box(code_type idx, code_type min, code_type max) {
-    if (idx >= max) return idx;
+  static code_type advance_to_box(code_type idx, code_type min, code_type max)
+  {
+    if (idx >= max)
+      return idx;
 
     // If outside the box in some coord, record the difference
     code_type delta = 0;
-    if      ((idx & x_mask) > (max & x_mask))  delta |= (idx ^ max) & x_mask;
-    else if ((idx & x_mask) < (min & x_mask))  delta |= (idx ^ min) & x_mask;
-    if      ((idx & y_mask) > (max & y_mask))  delta |= (idx ^ max) & y_mask;
-    else if ((idx & y_mask) < (min & y_mask))  delta |= (idx ^ min) & y_mask;
-    if      ((idx & z_mask) > (max & z_mask))  delta |= (idx ^ max) & z_mask;
-    else if ((idx & z_mask) < (min & z_mask))  delta |= (idx ^ min) & z_mask;
+    if ((idx & x_mask) > (max & x_mask))
+      delta |= (idx ^ max) & x_mask;
+    else if ((idx & x_mask) < (min & x_mask))
+      delta |= (idx ^ min) & x_mask;
+    if ((idx & y_mask) > (max & y_mask))
+      delta |= (idx ^ max) & y_mask;
+    else if ((idx & y_mask) < (min & y_mask))
+      delta |= (idx ^ min) & y_mask;
+    if ((idx & z_mask) > (max & z_mask))
+      delta |= (idx ^ max) & z_mask;
+    else if ((idx & z_mask) < (min & z_mask))
+      delta |= (idx ^ min) & z_mask;
 
     // Delta is only zero if idx is in the box
-    if (delta == 0) return idx;
+    if (delta == 0)
+      return idx;
 
     // Smear into a low bit mask, i.e. 0000111111111111
     delta = detail::smear_low_1(delta >> 1);
@@ -199,15 +224,17 @@ class MortonCoder
     idx = (idx | delta) + 1;
 
     // For each coordinate, if idx is low set to min
-    if ((idx & x_mask) < (min & x_mask))  idx |= min & x_mask;
-    if ((idx & y_mask) < (min & y_mask))  idx |= min & y_mask;
-    if ((idx & z_mask) < (min & z_mask))  idx |= min & z_mask;
+    if ((idx & x_mask) < (min & x_mask))
+      idx |= min & x_mask;
+    if ((idx & y_mask) < (min & y_mask))
+      idx |= min & y_mask;
+    if ((idx & z_mask) < (min & z_mask))
+      idx |= min & z_mask;
 
     return idx;
   }
 
- private:
-
+private:
   /** The minimum of the MortonCoder bounding box. */
   Point pmin_;
   /** The extent of a single cell. */
@@ -219,10 +246,9 @@ class MortonCoder
    * @pre z = [... z_2 z_1 z_0]
    * @post n = [... z_1 y_1 x_1 z_0 y_0 x_0]
    */
-  static inline code_type interleave(const Point& p) {
-    return detail::spread_bits((code_type) p.x)
-        | (detail::spread_bits((code_type) p.y) << 1)
-        | (detail::spread_bits((code_type) p.z) << 2);
+  static inline code_type interleave(const Point &p)
+  {
+    return detail::spread_bits((code_type)p.x) | (detail::spread_bits((code_type)p.y) << 1) | (detail::spread_bits((code_type)p.z) << 2);
   }
 
   /** Deinterleave the bits from n into a Point.
@@ -231,7 +257,8 @@ class MortonCoder
    * @post result.y = [... n_7 n_4 n_1]
    * @post result.z = [... n_8 n_5 n_2]
    */
-  static inline Point deinterleave(code_type c) {
+  static inline Point deinterleave(code_type c)
+  {
     return Point(detail::compact_bits(c),
                  detail::compact_bits(c >> 1),
                  detail::compact_bits(c >> 2));
