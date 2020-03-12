@@ -61,6 +61,7 @@ public:
     {
       return 1;
     }
+    return 0;
   };
   Box3D B = Box3D(Point(-0.6, -0.2, -1), Point(0.6, 0.2, 1));
 };
