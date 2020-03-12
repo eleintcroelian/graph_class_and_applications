@@ -21,6 +21,7 @@
 #include <thrust/for_each.h>
 #include <thrust/execution_policy.h>
 #include "SpaceSearcher.hpp"
+
 // Gravity in meters/sec^2
 static constexpr double grav = 9.81;
 static constexpr double c = 0.01;
@@ -111,42 +112,6 @@ double symp_euler_step(G &g, double t, double dt, F force, C constraint, bool pa
 
   return t + dt;
 }
-
-/** Force function object for HW2 #1. */
-struct Problem1Force
-{
-  /** Return the force applying to @a n at time @a t.
-   *
-   * For HW2 #1, this is a combination of mass-spring force and gravity,
-   * except that points at (0, 0, 0) and (1, 0, 0) never move. We can
-   * model that by returning a zero-valued force. */
-  template <typename NODE>
-  Point operator()(NODE n, double t)
-  {
-    (void)t;
-    if (n.position() == Point(0, 0, 0) || n.position() == Point(1, 0, 0))
-    {
-      return Point(0, 0, 0);
-    }
-
-    // std::cout<<"Node: "<< n.index()<< " connected to : ";
-    Point f_spring(0, 0, 0);
-    auto p1 = n.position();
-    for (auto it = n.edge_begin(); it != n.edge_end(); ++it)
-    {
-      auto current_edge = *it;
-      auto n2 = current_edge.node2();
-      // std::cout<< n2.index()<<" ";
-      auto p2 = n2.position();
-      Point direction = (p1 - p2) / norm(p2 - p1);
-      double current_distance = norm(p2 - p1);
-      f_spring = f_spring - 100 * direction * (current_distance - current_edge.value().RestLength);
-    }
-    // std::cout<< std::endl;
-    Point f_gravity(0, 0, -1);
-    return f_spring + (grav * n.value().mass) * f_gravity;
-  }
-};
 class ZeroForce
 {
 public:
@@ -282,6 +247,7 @@ public:
     }
   }
 };
+
 class SphereConstraint : public ZeroConstraint
 {
 public:
@@ -301,6 +267,7 @@ public:
     }
   }
 };
+
 class RemoveConstraint : public ZeroConstraint
 {
 public:
@@ -318,8 +285,6 @@ public:
     }
     for (auto el : eraselist)
     {
-      // auto extnode = graph->find_external(el);
-      // graph->remove_node(extnode);
       graph->remove_node(el);
     }
   }
@@ -348,13 +313,13 @@ struct CollisionUpdate
       double l2 = normSq(r);
       if (n != n2 && l2 < radius2)
       {
-        // Remove our velocity component in r
         n.value().vel -= (dot(r, n.value().vel) / l2) * r;
       }
     }
   }
   GraphType g;
 };
+
 struct SelfCollisionConstraint : public ZeroConstraint
 {
   void operator()(GraphType &g, double) const
@@ -362,6 +327,7 @@ struct SelfCollisionConstraint : public ZeroConstraint
     thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), CollisionUpdate(g));
   }
 };
+
 struct CombinedConstraints
 {
   CombinedConstraints(std::vector<ZeroConstraint *> inputconstraints) : inputconstraints_(inputconstraints){};
@@ -456,8 +422,8 @@ int main(int argc, char **argv)
       std::vector<ZeroConstraint *> constraint_vector;
       PinConstraint p_c(&graph);
       SphereConstraint s_c;
-      PlaneConstraint pl_c;
-      RemoveConstraint r_c;
+      // PlaneConstraint pl_c;
+      // RemoveConstraint r_c;
       SelfCollisionConstraint self_c;
       // constraint_vector.push_back(&p_c);
       constraint_vector.push_back(&s_c);
@@ -466,14 +432,11 @@ int main(int argc, char **argv)
       symp_euler_step(graph, t, dt, make_combined_force(GravityForce(), MassSpringForce()),
                       CombinedConstraints(constraint_vector), parallel);
 
-      // viewer.clear();
-      // node_map.clear();
+
       viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
-      // viewer.add_edges(graph.edge_begin(), graph.edge_end(), node_map);
       // Update viewer with nodes' new positions
       viewer.set_label(t);
       // These lines slow down the animation for small graphs, like grid0_*.
-      // Feel free to remove them or tweak the constants.
       if (graph.size() < 100)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
@@ -484,7 +447,6 @@ int main(int argc, char **argv)
   viewer.event_loop();
   // If we return from the event loop, we've killed the window.
   interrupt_sim_thread = true;
-
   sim_thread.join();
 
   return 0;
