@@ -81,15 +81,33 @@ struct VelocityUpdate
 };
 
 template <typename G, typename F, typename C>
-double symp_euler_step(G &g, double t, double dt, F force, C constraint)
+double symp_euler_step(G &g, double t, double dt, F force, C constraint, bool parallel)
 {
-  // Compute the t+dt position
-  // x^{n+1} = x^{n} + v^{n} * dt
-  thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), PositionUpdate{dt});
-  constraint(&g, t);
-  // Compute the t+dt velocity
-  // v^{n+1} = v^{n} + F(x^{n+1},t) * dt / m
-  thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), VelocityUpdate<decltype(force)>{dt, t, force});
+  if (parallel)
+  {
+    // Compute the t+dt position
+    // x^{n+1} = x^{n} + v^{n} * dt
+    thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), PositionUpdate{dt});
+    // Apply constraints
+    constraint(&g, t);
+    // Compute the t+dt velocity
+    // v^{n+1} = v^{n} + F(x^{n+1},t) * dt / m
+    thrust::for_each(thrust::omp::par, g.node_begin(), g.node_end(), VelocityUpdate<decltype(force)>{dt, t, force});
+  }
+  else
+  {
+    for (auto it = g.node_begin(); it != g.node_end(); ++it)
+    {
+      auto n = *it;
+      n.position() += n.value().vel * dt;
+    }
+    constraint(&g, t);
+    for (auto it = g.node_begin(); it != g.node_end(); ++it)
+    {
+      auto n = *it;
+      n.value().vel += force(n, t) * (dt / n.value().mass);
+    }
+  }
 
   return t + dt;
 }
@@ -396,9 +414,6 @@ int main(int argc, char **argv)
     graph.add_edge(nodes[t[2]], nodes[t[3]]);
   }
 
-  // HW2 #1 YOUR CODE HERE
-  // Set initial conditions for your nodes, if necessary.
-
   for (auto it = graph.node_begin(); it != graph.node_end(); ++it)
   {
     auto n = *it;
@@ -425,13 +440,16 @@ int main(int argc, char **argv)
   // We want viewer interaction and the simulation at the same time
   // Viewer is thread-safe, so launch the simulation in a child thread
   bool interrupt_sim_thread = false;
+
   auto sim_thread = std::thread([&]() {
     // Begin the mass-spring simulation
+    CME212::Clock clock;
     double dt = 0.0001;
     double t_start = 0;
-    double t_end = 5.0;
+    double t_end = 2.0;
     // double L = (*graph.edge_begin()).length();
-
+    bool parallel = true;
+    std::cout << "Parallel Computing: " << std::boolalpha << parallel << std::endl;
     for (double t = t_start; t < t_end && !interrupt_sim_thread; t += dt)
     {
       //std::cout << "t = " << t << std::endl;
@@ -446,7 +464,8 @@ int main(int argc, char **argv)
       constraint_vector.push_back(&self_c);
 
       symp_euler_step(graph, t, dt, make_combined_force(GravityForce(), MassSpringForce()),
-                      CombinedConstraints(constraint_vector));
+                      CombinedConstraints(constraint_vector), parallel);
+
       // viewer.clear();
       // node_map.clear();
       viewer.add_nodes(graph.node_begin(), graph.node_end(), node_map);
@@ -458,11 +477,14 @@ int main(int argc, char **argv)
       if (graph.size() < 100)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    auto time = clock.seconds();
+    std::cout << "Simulation Time: " << time << std::endl;
   }); // simulation thread
 
   viewer.event_loop();
   // If we return from the event loop, we've killed the window.
   interrupt_sim_thread = true;
+
   sim_thread.join();
 
   return 0;
