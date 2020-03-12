@@ -36,7 +36,6 @@ DEPSFLAGS = -MD -MF $(DEPSFILE) #-MP
 # Define any directories containing header files
 #   To include directories use -Ipath/to/files
 INCLUDES += -I. -I/usr/local/include/
-#INCLUDES += -I/usr/local/include/thrust
 
 # Define cxx compile flags
 CXXFLAGS  := -std=c++11 -O3 -W -Wall -Wextra -Wno-deprecated-declarations -fopenmp #-Wfatal-errors 
