@@ -1,0 +1,16 @@
+MinStack can be default, copy or move constructed. Using push, users can add elements and with pop, elements
+can be removed. At any time in the arrays life-cycle, min() would give the minimum element since
+as the array is being built, a variable follows the current minimum value and if that value
+is deleted from the array, a search is held in deletion to get the old minimum element.
+
+If there was more time a better way to implement would be not using a variable but a container,
+parallel to the minstack which contains all the minimum elements at specific additions like a set. 
+This way, we wouldn't need to carry a search if a minimum element is deleted. With the current 
+state MinStack can return the minimum value in O(1) as long as a deletion is not occured on the current
+minimum element. With the latter method, this condition would be eliminated.
+
+If a member-wise copy with different element numbers is occured, an assertion would be
+thrown. For a member-wise copy, both arrays should have the same array length.
+
+The size of the array starts with 5, and doubles as more storage is needed. This would result with
+O(logn) storage requirements since the reallocation would get slower in linear time.
