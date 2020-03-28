@@ -484,7 +484,9 @@ public:
   };
   /** @class Graph::NodeIterator
    * @brief Iterator class for nodes. A forward iterator. */
-
+//--design_0
+//--you don't actually have a node Iterator class, weird
+//--END
   using node_iterator = thrust::transform_iterator<Uid2Node, std::vector<unsigned int>::const_iterator, Node>;
   /* 
    * @return An iterator that points at the start of the nodes

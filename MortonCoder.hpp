@@ -4,7 +4,7 @@
  * @brief Define the MortonCoder class for Z-order-curve values, aka Morton
  *   codes.
  */
-
+#include <bitset>
 #include <cstdint>
 #include <climits>
 #include <cassert>

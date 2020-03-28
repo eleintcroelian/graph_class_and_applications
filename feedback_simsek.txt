@@ -1,0 +1,57 @@
+FILE:          Graph.hpp
+DESIGN         
+
+COMMENTS:
+-you don't actually have a node Iterator class, weird
+
+                  
+
+
+--------------------------
+FILE:          SpaceSearcher.hpp
+DESIGN         
+
+COMMENTS:
+-sort on what?, you need to provide a comparitor for this do do what you want.
+
+RELEVANT CODE:
+std::sort(z_data_.begin(), z_data_.end());
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+FILE:          mass_spring.cpp
+FUNCTIONALITY  
+
+COMMENTS:
+-self collision never triggers for grid1
+
+RELEVANT CODE:
+if (n != n2 && l2 < radius2)
+      {
+        std::cout << "triggered" << std::endl;
+          n.value().vel -= (dot(r, n.value().vel) / l2) * r;
+      }
+
+POINTS DEDUCTED: 1
+
+
+--------------------------
+
+GRADING TA                  
+SUNet ID: lwarne, GitHub ID lwarne
+###################################################
+
+FUNCTIONALITY SCORE:                     ok
+###################################################
+
+DESIGN SCORE:                            ok
+###################################################
+
+STYLE SCORE:                              +
+###################################################
+
+WRITEUP SCORE:                            +
+###################################################
+If you have any problem about grading result, please file an issue in your GitHub repo.

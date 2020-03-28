@@ -311,10 +311,15 @@ struct CollisionUpdate
       auto n2 = *it3;
       Point r = center - n2.position();
       double l2 = normSq(r);
+      //--functionality_1
+      //--self collision never triggers for grid1
+      //--START
       if (n != n2 && l2 < radius2)
       {
-        n.value().vel -= (dot(r, n.value().vel) / l2) * r;
+        std::cout << "triggered" << std::endl;
+          n.value().vel -= (dot(r, n.value().vel) / l2) * r;
       }
+      //--END
     }
   }
   GraphType g;
@@ -410,7 +415,7 @@ int main(int argc, char **argv)
   auto sim_thread = std::thread([&]() {
     // Begin the mass-spring simulation
     CME212::Clock clock;
-    double dt = 0.0001;
+    double dt = 0.001;
     double t_start = 0;
     double t_end = 2.0;
     // double L = (*graph.edge_begin()).length();

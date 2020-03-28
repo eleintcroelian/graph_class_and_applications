@@ -130,7 +130,11 @@ public:
     thrust::zip_iterator<IteratorTuple> zip_iter_end(thrust::make_tuple(morton_iter_end, tlast));
 
     z_data_ = std::vector<morton_pair>(zip_iter_begin, zip_iter_end);
+    //--design_1
+    //--sort on what?, you need to provide a comparitor for this do do what you want.
+    //--START
     std::sort(z_data_.begin(), z_data_.end()); 
+    //--END
     // HW4: YOUR CODE HERE
   }
 
